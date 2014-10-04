@@ -11,27 +11,13 @@ static const int DEFAULT_WINDOW_HEIGHT = 480;
 
 static game::Options parseArgs(int argc, char *argv[]);
 
-class QuitEvent : public game::Event
-{
-public:
-    bool test(const SDL_Event &e)
-        { return (e.type == SDL_QUIT); }
-    void fire()
-        { game::setRunning(false); }
-};
-
 int main(int argc, char *argv[])
 {
     _START_EASYLOGGINGPP(argc, argv);
 
     try
     {
-        auto options = parseArgs(argc, argv);
-
-        game::registerEvent(SDLK_ESCAPE, []() { game::setRunning(false); });
-        game::registerEvent(new QuitEvent());
-
-        game::run(options);
+        game::run(parseArgs(argc, argv));
     }
     catch (TCLAP::ArgException &e)
     {

@@ -10,16 +10,23 @@
 class Sprite : public Entity
 {
 public:
-    using Entity::Entity;
+    Sprite(const std::string &name, int x_ = 0, int y_ = 0) :
+        Entity(name),
+        x(x_),
+        y(y_) {}
 
     virtual void draw() = 0;
+
+    int x, y;
 };
 
 class TexturedSprite : public Sprite
 {
 public:
-    TexturedSprite(const std::string &name, std::shared_ptr<Texture> texture);
-    virtual ~TexturedSprite();
+    TexturedSprite(const std::string &name,
+                   std::shared_ptr<Texture> texture,
+                   int x_ = 0,
+                   int y_ = 0);
 
     void draw();
 

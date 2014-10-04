@@ -11,3 +11,7 @@ include/exception.hpp
 include/entity.hpp
 include/sprite.hpp
 src/sprite.cpp
+include/ship.hpp
+src/ship.cpp
+include/timer.hpp
+src/timer.cpp
