@@ -2,4 +2,4 @@
 *.dep
 *~
 *.swp
-log.txt
+logs
