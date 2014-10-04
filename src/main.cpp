@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     }
     catch (TCLAP::ArgException &e)
     {
-        LOG(FATAL) << "ARG EXCEPTION: " << e.error();
+        LOG(ERROR) << "ARG EXCEPTION: " << e.error();
         return 1;
     }
 

@@ -15,8 +15,7 @@ Texture::~Texture()
 {
     LOG(DEBUG) << __FUNCTION__;
 
-    // No need to clean up the SDL_Texture here, since there's a custom deleter
-    // passed to the shared_ptr that does it for us
+    SDL_DestroyTexture(_texture);
 }
 
 void Texture::load(const std::string &filename)
@@ -29,7 +28,7 @@ void Texture::load(const std::string &filename)
         throw SDLImageException(ss.str());
     }
 
-    auto texture = SDL_CreateTextureFromSurface(game::getWindow().getRenderer(),
+    auto texture = SDL_CreateTextureFromSurface(window::getRenderer(),
                                                 surface);
     SDL_FreeSurface(surface);
     if (texture == nullptr)
@@ -40,12 +39,6 @@ void Texture::load(const std::string &filename)
     }
     else
     {
-        auto deleter = [](SDL_Texture *t)
-        {
-            LOG(DEBUG) << __FUNCTION__;
-            SDL_DestroyTexture(t);
-        };
-
-        _texture = std::shared_ptr<SDL_Texture>(texture, deleter);
+        _texture = texture;
     }
 }

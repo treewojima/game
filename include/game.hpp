@@ -28,8 +28,6 @@ namespace game
     bool isRunning();
     void setRunning(bool b);
 
-    Window &getWindow();
-
     typedef std::function<void ()> EventCallback;
     void registerEvent(SDL_Keycode key, EventCallback callback);
     void registerEvent(Event *event);

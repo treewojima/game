@@ -8,3 +8,6 @@ include/game.hpp
 src/window.cpp
 src/main.cpp
 include/exception.hpp
+include/entity.hpp
+include/sprite.hpp
+src/sprite.cpp

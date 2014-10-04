@@ -10,10 +10,9 @@
 #include <tclap/CmdLine.h>
 #include <vector>
 #include "exception.hpp"
+#include "sprite.hpp"
 #include "texture.hpp"
 
-static std::unique_ptr<Window> _window;
-static std::unique_ptr<Texture> _texture;
 static bool _running;
 static std::vector<std::shared_ptr<game::Event>> _events;
 
@@ -42,8 +41,33 @@ private:
     game::EventCallback _callback;
 };
 
+class BoxSprite : public Sprite
+{
+public:
+    BoxSprite(const std::string &name, int w, int h) :
+        Sprite(name),
+        _width(w),
+        _height(h) {}
+
+    void draw()
+    {
+        SDL_Rect r;
+        r.w = _width;
+        r.h = _height;
+        r.x = r.y = 300;
+
+        SDL_SetRenderDrawColor(window::getRenderer(), 255, 0, 0, 0);
+        SDL_RenderDrawRect(window::getRenderer(), &r);
+    }
+
+private:
+    int _width, _height;
+};
+
 int game::run(game::Options options)
 {
+    std::unique_ptr<Sprite> tux, box;
+
     try
     {
         if (SDL_Init(SDL_INIT_VIDEO))
@@ -65,14 +89,16 @@ int game::run(game::Options options)
             throw SDLImageException();
         }
 
-        _window = std::unique_ptr<Window>(new Window(options.windowWidth,
-                                                     options.windowHeight));
+        window::create(options.windowWidth, options.windowHeight);
 
-        _texture = std::unique_ptr<Texture>(new Texture("res/textures/tux.png"));
+        auto texture = std::shared_ptr<Texture>(new Texture("res/textures/tux.png"));
+        tux = std::unique_ptr<Sprite>(new TexturedSprite("tux", texture));
+
+        box = std::unique_ptr<Sprite>(new BoxSprite("box", 200, 200));
     }
     catch (std::exception &e)
     {
-        LOG(FATAL) << "EXCEPTION: " << e.what();
+        LOG(ERROR) << "EXCEPTION: " << e.what();
         return 1;
     }
 
@@ -83,22 +109,24 @@ int game::run(game::Options options)
         {
             handleEvents();
 
-            getWindow().clear();
-            SDL_RenderCopy(getWindow().getRenderer(),
-                           _texture->getRawTexture(),
-                           nullptr, nullptr);
-            getWindow().flip();
+            window::clear();
+
+            //tux->draw();
+            box->draw();
+
+            window::flip();
         }
         catch (std::exception &e)
         {
-            LOG(FATAL) << "EXCEPTION: " << e.what();
+            LOG(ERROR) << "EXCEPTION: " << e.what();
             setRunning(false);
         }
     }
 
     //_events.clear();
-    _texture.reset();
-    _window.reset();
+    tux.reset();
+    box.reset();
+    window::destroy();
     IMG_Quit();
     SDL_Quit();
     return 0;
@@ -112,11 +140,6 @@ bool game::isRunning()
 void game::setRunning(bool b)
 {
     _running = b;
-}
-
-Window &game::getWindow()
-{
-    return *_window;
 }
 
 void game::registerEvent(SDL_Keycode key, game::EventCallback callback)
