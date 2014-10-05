@@ -10,14 +10,10 @@
 class Sprite : public Entity
 {
 public:
-    Sprite(const std::string &name, int x_ = 0, int y_ = 0) :
-        Entity(name),
-        x(x_),
-        y(y_) {}
+    using Entity::Entity;
+    virtual ~Sprite() {}
 
     virtual void draw() = 0;
-
-    int x, y;
 };
 
 class TexturedSprite : public Sprite
@@ -25,12 +21,15 @@ class TexturedSprite : public Sprite
 public:
     TexturedSprite(const std::string &name,
                    std::shared_ptr<Texture> texture,
-                   int x_ = 0,
-                   int y_ = 0);
+                   float x_ = 0, float y_ = 0,
+                   float vel_x_ = 0, float vel_y_ = 0);
 
     void draw();
 
-    inline std::shared_ptr<Texture> getTexture() { return _texture; }
+    int getWidth() const { return getTexture()->getWidth(); }
+    int getHeight() const { return getTexture()->getHeight(); }
+
+    inline std::shared_ptr<Texture> getTexture() const { return _texture; }
 
 private:
     std::shared_ptr<Texture> _texture;

@@ -8,12 +8,18 @@
 class Ship : public Sprite
 {
 public:
-    Ship(int x_ = 0, int y_ = 0);
+    Ship(float x_ = 0, float y_ = 0, float vel_x_ = 0, float vel_y_ = 0);
     ~Ship();
 
     void draw();
 
+    int getWidth() const { return WIDTH; }
+    int getHeight() const { return HEIGHT; }
+
 private:
+    static const int WIDTH = 20;
+    static const int HEIGHT = 20;
+
     game::EventHandle _eventHandles[4];
 };
 

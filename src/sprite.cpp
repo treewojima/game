@@ -6,8 +6,9 @@
 
 TexturedSprite::TexturedSprite(const std::string &name,
                                std::shared_ptr<Texture> texture,
-                               int x_, int y_) :
-    Sprite(name, x_, y_),
+                               float x_, float y_,
+                               float vel_x_, float vel_y_) :
+    Sprite(name, x_, y_, vel_x_, vel_y_),
     _texture(texture)
 {
      assert(_texture.get() != nullptr);
@@ -15,5 +16,7 @@ TexturedSprite::TexturedSprite(const std::string &name,
 
 void TexturedSprite::draw()
 {
-    window::blit(*_texture, x, y);
+    window::blit(*_texture,
+                 static_cast<int>(x),
+                 static_cast<int>(y));
 }

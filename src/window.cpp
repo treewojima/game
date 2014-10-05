@@ -24,9 +24,9 @@ void window::create(int width, int height)
     if (_window == nullptr)
         throw SDLException();
 
-    auto rendererFlags = SDL_RENDERER_ACCELERATED |
-                         SDL_RENDERER_PRESENTVSYNC |
-                         SDL_RENDERER_TARGETTEXTURE;
+    Uint32 rendererFlags = SDL_RENDERER_ACCELERATED |
+                           SDL_RENDERER_PRESENTVSYNC |
+                           SDL_RENDERER_TARGETTEXTURE;
     _renderer = SDL_CreateRenderer(_window, -1, rendererFlags);
     if (_renderer == nullptr)
     {

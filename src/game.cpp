@@ -2,23 +2,30 @@
 
 #include <algorithm>
 #include <easylogging++.h>
+#include <list>
 #include <map>
 #include <memory>
+#include <random>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <sstream>
 #include <tclap/CmdLine.h>
-#include <vector>
+#include "asteroid.hpp"
 #include "exception.hpp"
 #include "ship.hpp"
 #include "sprite.hpp"
 #include "texture.hpp"
 #include "timer.hpp"
 
+static const int NUM_ASTEROIDS = 5;
+
 static bool _running;
 static std::map<game::EventHandle, std::shared_ptr<game::Event>> _events;
-static std::unique_ptr<Ship> _ship;
 static Timer _fpsTimer;
+
+static std::shared_ptr<Ship> _ship;
+static std::list<std::shared_ptr<Asteroid>> _asteroids;
+static std::list<std::shared_ptr<Entity>> _collidables;
 
 static void initSDL();
 static void shutdownSDL();
@@ -26,6 +33,9 @@ static void initSprites();
 static void destroySprites();
 static void registerEvents();
 static void handleEvents();
+static void updateEntities(float dt);
+static void checkCollisions(float dt);
+static void drawScene();
 
 class KeyEvent : public game::Event
 {
@@ -80,10 +90,15 @@ int game::run(game::Options options)
     registerEvents();
     initSprites();
 
+    Timer stepTimer;
+    float dt = 0;
+
     int countedFrames = 0;
     Uint32 oldTicks = 0, currentTicks = 0;
+
     setRunning(true);
     _fpsTimer.start();
+    stepTimer.start();
     while (isRunning())
     {
         // Update the FPS counter every second or so
@@ -101,9 +116,11 @@ int game::run(game::Options options)
         {
             handleEvents();
 
-            window::clear();
-            _ship->draw();
-            window::flip();
+            dt = stepTimer.getTicks() / 1000.f;
+            updateEntities(dt);
+            stepTimer.start();
+
+            drawScene();
         }
         catch (std::exception &e)
         {
@@ -134,14 +151,15 @@ game::EventHandle game::registerEvent(SDL_Keycode key,
                                       game::EventCallback callback,
                                       const std::string &debugString)
 {
-    return registerEvent(new KeyEvent(key, callback, debugString));
+    return registerEvent(std::shared_ptr<KeyEvent>(
+                             new KeyEvent(key, callback, debugString)));
 }
 
-game::EventHandle game::registerEvent(game::Event *event)
+game::EventHandle game::registerEvent(std::shared_ptr<game::Event> event)
 {
     static EventHandle currentHandle = 0;
 
-    _events[++currentHandle] = std::shared_ptr<Event>(event);
+    _events[++currentHandle] = event;
 
     if (!event->debugString.empty())
         LOG(DEBUG) << "registered event " << event->debugString;
@@ -154,6 +172,12 @@ void game::unregisterEvent(game::EventHandle handle)
     if (!i->second->debugString.empty())
         LOG(DEBUG) << "unregistered event " << i->second->debugString;
     _events.erase(i);
+}
+
+void game::registerCollidable(std::shared_ptr<Entity> entity)
+{
+    _collidables.push_back(entity);
+    LOG(DEBUG) << "registered collidable entity " << entity->getName();
 }
 
 void initSDL()
@@ -187,18 +211,40 @@ void shutdownSDL()
 
 void initSprites()
 {
-    _ship = std::unique_ptr<Ship>(new Ship(window::getWidth(),
-                                           window::getHeight()));
+    _ship = std::shared_ptr<Ship>(new Ship(window::getWidth() / 2,
+                                           window::getHeight() / 2));
+    game::registerCollidable(_ship);
+
+    // This should probably test for overlap and repeated numbers, but meh
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> x_distribution(0, window::getWidth());
+    std::uniform_int_distribution<int> y_distribution(0, window::getHeight());
+    for (int i = 0; i < NUM_ASTEROIDS; i++)
+    {
+        std::ostringstream ss;
+        ss << "Asteroid" << i;
+
+        int x = x_distribution(generator);
+        int y = y_distribution(generator);
+        auto asteroid = std::shared_ptr<Asteroid>(new Asteroid(ss.str(), x, y));
+        _asteroids.push_back(asteroid);
+        game::registerCollidable(asteroid);
+
+        LOG(DEBUG) << "creating asteroid " << ss.str() << "(" << x << ", " << y << ")";
+    }
 }
 
 void destroySprites()
 {
-    _ship.reset();
+    _collidables.clear();
+    _asteroids.clear();
+    //_ship.reset();
 }
 
 void registerEvents()
 {
-    game::registerEvent(new QuitEvent("QuitEvent"));
+    game::registerEvent(std::shared_ptr<game::Event>(
+                            new QuitEvent("QuitEvent")));
     game::registerEvent(SDLK_ESCAPE,
                         []() { game::setRunning(false); },
                         "EscapeEvent");
@@ -225,11 +271,55 @@ void handleEvents()
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        std::for_each(_events.begin(), _events.end(),
-                      [&] (std::pair<game::EventHandle,
-                                     std::shared_ptr<game::Event>> pair)
+        for (auto &pair : _events)
         {
             if (pair.second->test(event)) pair.second->fire();
-        });
+        }
     }
+}
+
+void updateEntities(float dt)
+{
+    _ship->update(dt);
+
+    for (auto &asteroid : _asteroids)
+    {
+        asteroid->update(dt);
+    }
+
+    checkCollisions(dt);
+}
+
+void checkCollisions(float dt)
+{
+    for (auto &entity : _collidables)
+    {
+        for (auto &other : _collidables)
+        {
+            if (entity != other)
+            {
+                auto entityBB = entity->getBoundingBox();
+                auto otherBB = other->getBoundingBox();
+                SDL_Rect intersection;
+                if (SDL_IntersectRect(&entityBB, &otherBB, &intersection))
+                {
+                    entity->collide(dt, other, intersection);
+                }
+            }
+        }
+    }
+}
+
+void drawScene()
+{
+    window::clear();
+
+    _ship->draw();
+
+    for (auto &asteroid : _asteroids)
+    {
+        asteroid->draw();
+    }
+
+    window::flip();
 }

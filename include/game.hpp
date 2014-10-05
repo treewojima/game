@@ -2,11 +2,10 @@
 #define __GAME_HPP__
 
 #include "defines.hpp"
-#include <easylogging++.h>
 #include <functional>
 #include <SDL2/SDL.h>
 #include <string>
-#include <typeinfo>
+#include "entity.hpp"
 #include "window.hpp"
 
 namespace game
@@ -39,8 +38,10 @@ namespace game
     EventHandle registerEvent(SDL_Keycode key,
                               EventCallback callback,
                               const std::string &debugString = std::string());
-    EventHandle registerEvent(Event *event);
+    EventHandle registerEvent(std::shared_ptr<Event> event);
     void unregisterEvent(EventHandle handle);
+
+    void registerCollidable(std::shared_ptr<Entity> entity);
 }
 
 #endif

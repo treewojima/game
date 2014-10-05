@@ -22,12 +22,12 @@ void Timer::start()
     _startTicks = SDL_GetTicks();
     _pausedTicks = 0;
 
-    LOG(DEBUG) << "starting timer";
+    //LOG(DEBUG) << "starting timer";
 }
 
 void Timer::stop()
 {
-    LOG(DEBUG) << "stopped timer after " << getTicks() << " ticks";
+    //LOG(DEBUG) << "stopped timer after " << getTicks() << " ticks";
 
     _state = TimerState::STOPPED;
     _startTicks = _pausedTicks = 0;

@@ -4,21 +4,22 @@
 #include "game.hpp"
 #include "window.hpp"
 
-Ship::Ship(int x_, int y_) : Sprite("ship", x_, y_)
+Ship::Ship(float x_, float y_, float vel_x_, float vel_y_) :
+    Sprite("Ship", x_, y_, vel_x_, vel_y_)
 {
-    static const int magnitude = 5;
+    static const int magnitude = 50;
 
     _eventHandles[0] = game::registerEvent(SDLK_LEFT,
-                                           [this]() { this->x -= magnitude; },
+                                           [this]() { this->vel_x -= magnitude; },
                                            "ShipLeftEvent");
     _eventHandles[1] = game::registerEvent(SDLK_RIGHT,
-                                           [this]() { this->x += magnitude; },
+                                           [this]() { this->vel_x += magnitude; },
                                            "ShipRightEvent");
     _eventHandles[2] = game::registerEvent(SDLK_UP,
-                                           [this]() { this->y -= magnitude; },
+                                           [this]() { this->vel_y -= magnitude; },
                                            "ShipUpEvent");
     _eventHandles[3] = game::registerEvent(SDLK_DOWN,
-                                           [this]() { this->y += magnitude; },
+                                           [this]() { this->vel_y += magnitude; },
                                            "ShipDownEvent");
 }
 
@@ -30,12 +31,7 @@ Ship::~Ship()
 
 void Ship::draw()
 {
-    SDL_Rect r;
-    r.x = x;
-    r.y = y;
-    r.w = r.h = 20;
-
-    SDL_SetRenderDrawColor(window::getRenderer(),
-                           255, 255, 255, 0);
+    SDL_Rect r = getBoundingBox();
+    SDL_SetRenderDrawColor(window::getRenderer(), 255, 255, 255, 0);
     SDL_RenderDrawRect(window::getRenderer(), &r);
 }
