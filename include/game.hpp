@@ -23,7 +23,7 @@ namespace game
         virtual ~Event() {}
 
         virtual bool test(const SDL_Event &e) = 0;
-        virtual void fire() = 0;
+        virtual void fire(const SDL_Event &e) = 0;
 
         std::string debugString;
     };
@@ -33,7 +33,7 @@ namespace game
     bool isRunning();
     void setRunning(bool b);
 
-    typedef std::function<void ()> EventCallback;
+    typedef std::function<void (const SDL_Event &e)> EventCallback;
     typedef int EventHandle;
     EventHandle registerEvent(SDL_Keycode key,
                               EventCallback callback,

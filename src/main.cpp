@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <tclap/CmdLine.h>
 #include "game.hpp"
+#include "math.hpp"
 
 _INITIALIZE_EASYLOGGINGPP
 

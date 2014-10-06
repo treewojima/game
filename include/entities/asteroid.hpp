@@ -2,12 +2,12 @@
 #define __ASTEROID_HPP__
 
 #include "defines.hpp"
-#include "sprite.hpp"
+#include "entity.hpp"
 
-class Asteroid : public Sprite
+class Asteroid : public Entity
 {
 public:
-    using Sprite::Sprite;
+    using Entity::Entity;
 
     void draw();
 

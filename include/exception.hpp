@@ -28,4 +28,10 @@ public:
     SDLImageException() : SDLException(IMG_GetError()) {}
 };
 
+class PhysicsException : public Exception
+{
+public:
+    using Exception::Exception;
+};
+
 #endif

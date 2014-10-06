@@ -1,7 +1,6 @@
 #include "defines.hpp"
 #include "asteroid.hpp"
 
-#include <easylogging++.h>
 #include <SDL2/SDL.h>
 #include "window.hpp"
 

@@ -1,6 +1,7 @@
 #include "game.hpp"
 
 #include <algorithm>
+#include <Box2D/Box2D.h>
 #include <easylogging++.h>
 #include <list>
 #include <map>
@@ -10,27 +11,29 @@
 #include <SDL2/SDL_image.h>
 #include <sstream>
 #include <tclap/CmdLine.h>
-#include "asteroid.hpp"
+#include "block.hpp"
 #include "exception.hpp"
+#include "ground.hpp"
+#include "physics.hpp"
 #include "ship.hpp"
-#include "sprite.hpp"
 #include "texture.hpp"
 #include "timer.hpp"
 
-static const int NUM_ASTEROIDS = 5;
+static const int NUM_BLOCKS = 2;
 
 static bool _running;
 static std::map<game::EventHandle, std::shared_ptr<game::Event>> _events;
 static Timer _fpsTimer;
 
 static std::shared_ptr<Ship> _ship;
-static std::list<std::shared_ptr<Asteroid>> _asteroids;
+static std::shared_ptr<Ground> _ground;
+static std::list<std::shared_ptr<Block>> _blocks;
 static std::list<std::shared_ptr<Entity>> _collidables;
 
 static void initSDL();
 static void shutdownSDL();
-static void initSprites();
-static void destroySprites();
+static void initEntities();
+static void destroyEntities();
 static void registerEvents();
 static void handleEvents();
 static void updateEntities(float dt);
@@ -80,6 +83,7 @@ int game::run(game::Options options)
     {
         initSDL();
         window::create(options.windowWidth, options.windowHeight);
+        physics::init();
     }
     catch (std::exception &e)
     {
@@ -88,7 +92,7 @@ int game::run(game::Options options)
     }
 
     registerEvents();
-    initSprites();
+    initEntities();
 
     Timer stepTimer;
     float dt = 0;
@@ -117,6 +121,7 @@ int game::run(game::Options options)
             handleEvents();
 
             dt = stepTimer.getTicks() / 1000.f;
+            physics::step(dt);
             updateEntities(dt);
             stepTimer.start();
 
@@ -132,7 +137,8 @@ int game::run(game::Options options)
     }
     _fpsTimer.stop();
 
-    destroySprites();
+    destroyEntities();
+    physics::shutdown();
     shutdownSDL();
     return 0;
 }
@@ -209,61 +215,75 @@ void shutdownSDL()
     SDL_Quit();
 }
 
-void initSprites()
+void initEntities()
 {
     _ship = std::shared_ptr<Ship>(new Ship(window::getWidth() / 2,
                                            window::getHeight() / 2));
+    _ship->initializeBody();
     game::registerCollidable(_ship);
 
+    _ground = std::shared_ptr<Ground>(new Ground());
+    _ground->initializeBody();
+    game::registerCollidable(_ground);
+
     // This should probably test for overlap and repeated numbers, but meh
-    std::default_random_engine generator;
-    std::uniform_int_distribution<int> x_distribution(0, window::getWidth());
-    std::uniform_int_distribution<int> y_distribution(0, window::getHeight());
-    for (int i = 0; i < NUM_ASTEROIDS; i++)
+    std::random_device rd;
+    std::default_random_engine generator(rd());
+    std::uniform_int_distribution<int>
+            x_distribution(0, window::getWidth() - Block::DEFAULT_WIDTH);
+    std::uniform_int_distribution<int>
+            y_distribution(0, window::getHeight() - Block::DEFAULT_HEIGHT);
+    for (int i = 0; i < NUM_BLOCKS; i++)
     {
         std::ostringstream ss;
-        ss << "Asteroid" << i;
+        ss << "Block" << i;
 
         int x = x_distribution(generator);
         int y = y_distribution(generator);
-        auto asteroid = std::shared_ptr<Asteroid>(new Asteroid(ss.str(), x, y));
-        _asteroids.push_back(asteroid);
-        game::registerCollidable(asteroid);
+        auto block = std::shared_ptr<Block>(new Block(ss.str(), x, y));
 
-        LOG(DEBUG) << "creating asteroid " << ss.str() << "(" << x << ", " << y << ")";
+        block->initializeBody();
+        _blocks.push_back(block);
+        game::registerCollidable(block);
+
+        LOG(DEBUG) << "creating block " << ss.str() << "(" << x << ", " << y << ")";
     }
 }
 
-void destroySprites()
+void destroyEntities()
 {
     _collidables.clear();
-    _asteroids.clear();
-    //_ship.reset();
+    _blocks.clear();
+    _ship.reset();
+    _ground.reset();
 }
 
 void registerEvents()
 {
-    game::registerEvent(std::shared_ptr<game::Event>(
-                            new QuitEvent("QuitEvent")));
-    game::registerEvent(SDLK_ESCAPE,
-                        []() { game::setRunning(false); },
-                        "EscapeEvent");
-    game::registerEvent(SDLK_SPACE, []()
-    {
-        switch (_fpsTimer.getState())
-        {
-        case TimerState::RUNNING:
-            _fpsTimer.pause();
-            break;
+    game::registerEvent(
+            std::shared_ptr<game::Event>(new QuitEvent("QuitEvent")));
+    game::registerEvent(
+            SDLK_ESCAPE,
+            []() { game::setRunning(false); },
+            "EscapeEvent");
+    game::registerEvent(
+            SDLK_SPACE,
+            []() {
+                switch (_fpsTimer.getState())
+                {
+                case TimerState::RUNNING:
+                    _fpsTimer.pause();
+                    break;
 
-        case TimerState::PAUSED:
-            _fpsTimer.resume();
-            break;
+                case TimerState::PAUSED:
+                    _fpsTimer.resume();
+                    break;
 
-        case TimerState::STOPPED:
-            LOG(WARNING) << "timer isn't running (why?)";
-        }
-    }, "TimerToggleEvent");
+                case TimerState::STOPPED:
+                    LOG(WARNING) << "timer isn't running (why?)";
+                }
+            },
+            "TimerToggleEvent");
 }
 
 void handleEvents()
@@ -282,12 +302,12 @@ void updateEntities(float dt)
 {
     _ship->update(dt);
 
-    for (auto &asteroid : _asteroids)
+    for (auto &block : _blocks)
     {
-        asteroid->update(dt);
+        block->update(dt);
     }
 
-    checkCollisions(dt);
+    //checkCollisions(dt);
 }
 
 void checkCollisions(float dt)
@@ -312,13 +332,13 @@ void checkCollisions(float dt)
 
 void drawScene()
 {
-    window::clear();
+    window::clear(255, 255, 255, 0);
 
     _ship->draw();
 
-    for (auto &asteroid : _asteroids)
+    for (auto &block : _blocks)
     {
-        asteroid->draw();
+        block->draw();
     }
 
     window::flip();

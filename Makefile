@@ -1,8 +1,8 @@
 CC       := clang++
 WARNINGS := -Wall -Wnon-virtual-dtor -Wctor-dtor-privacy
 CFLAGS   := -c -ggdb3 -std=c++11 $(shell sdl2-config --cflags) $(WARNINGS) \
-	 -Iinclude -Ilib/include
-LFLAGS   := $(shell sdl2-config --libs) -lSDL2_image
+	 -Iinclude -Ilib/include -I/usr/local/include
+LFLAGS   := $(shell sdl2-config --libs) -lSDL2_image -lBox2D
 PROJDIRS := include src
 SOURCES  := $(shell find $(PROJDIRS) -type f -name "*.cpp")
 HEADERS  := $(shell find $(PROJDIRS) -type f -name "*.hpp")
