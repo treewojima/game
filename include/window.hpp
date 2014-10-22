@@ -6,13 +6,13 @@
 #include <SDL2/SDL.h>
 #include "texture.hpp"
 
-namespace window
+namespace Window
 {
     void create(int width, int height);
     void destroy();
 
     void clear(Uint8 r = 0, Uint8 g = 0, Uint8 b = 0, Uint8 a = 0);
-    void blit(const Texture &texture, int x, int y);
+    void blitTexture(const Texture &texture, int x, int y);
     void flip();
 
     void setTitle(const std::string &title);
@@ -20,6 +20,8 @@ namespace window
     SDL_Renderer *getRenderer();
     int getWidth();
     int getHeight();
+    float getWidthMeters();
+    float getHeightMeters();
 }
 
 #endif

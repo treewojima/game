@@ -5,14 +5,23 @@
 #include <easylogging++.h>
 #include <memory>
 
-static const b2Vec2 INITIAL_GRAVITY(0, 10);
-static const float TIME_STEP = 1.0f / 60.0f;
-static const int VELOCITY_ITERATIONS = 6;
-static const int POSITION_ITERATIONS = 2;
+#include "window.hpp"
 
-static std::unique_ptr<b2World> _world;
+const float Physics::METERS_TO_PIXELS = 50.f;
+const float Physics::PIXELS_TO_METERS = 1.f / Physics::METERS_TO_PIXELS;
 
-void physics::init()
+// Locals
+namespace
+{
+    const b2Vec2 INITIAL_GRAVITY(0, 10);
+    const float TIME_STEP = 1.f / 60.f;
+    const int VELOCITY_ITERATIONS = 6;
+    const int POSITION_ITERATIONS = 2;
+
+    std::unique_ptr<b2World> _world;
+}
+
+void Physics::initialize()
 {
     LOG(INFO) << "using Box2D " << b2_version.major << "." << b2_version.minor
               << "." << b2_version.revision;
@@ -20,19 +29,19 @@ void physics::init()
     _world = std::unique_ptr<b2World>(new b2World(INITIAL_GRAVITY));
 }
 
-void physics::step(float dt)
+void Physics::step(float dt)
 {
-    getWorld().Step(dt, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+    _world->Step(dt, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
 }
 
-void physics::shutdown()
-{
-    LOG(DEBUG) << __FUNCTION__;
-
-    _world.reset();
-}
-
-b2World &physics::getWorld()
+b2World &Physics::getWorld()
 {
     return *_world;
+}
+
+b2Vec2 Physics::getOriginOffset()
+{
+    float offsetX = Window::getWidthMeters() / 2;
+    float offsetY = Window::getHeightMeters() / 2;
+    return b2Vec2(offsetX, offsetY);
 }

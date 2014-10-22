@@ -8,7 +8,7 @@
 #include "entity.hpp"
 #include "window.hpp"
 
-namespace game
+namespace Game
 {
     struct Options
     {
@@ -18,14 +18,22 @@ namespace game
     class Event
     {
     public:
+        typedef int Handle;
+        typedef std::function<void (const SDL_Event &e)> Callback;
+
         Event(const std::string &debugString_ = std::string()) :
             debugString(debugString_) {}
-        virtual ~Event() {}
+        virtual ~Event()
+        {
+#ifdef _DEBUG_EVENTS
+            LOG(DEBUG) << "destroyed event \"" << debugString << "\"";
+#endif
+        }
 
         virtual bool test(const SDL_Event &e) = 0;
         virtual void fire(const SDL_Event &e) = 0;
 
-        std::string debugString;
+        std::string debugString;        
     };
 
     int run(Options options);
@@ -33,15 +41,11 @@ namespace game
     bool isRunning();
     void setRunning(bool b);
 
-    typedef std::function<void (const SDL_Event &e)> EventCallback;
-    typedef int EventHandle;
-    EventHandle registerEvent(SDL_Keycode key,
-                              EventCallback callback,
+    Event::Handle registerEvent(SDL_Keycode key,
+                              Event::Callback callback,
                               const std::string &debugString = std::string());
-    EventHandle registerEvent(std::shared_ptr<Event> event);
-    void unregisterEvent(EventHandle handle);
-
-    void registerCollidable(std::shared_ptr<Entity> entity);
+    Event::Handle registerEvent(std::shared_ptr<Event> event);
+    void unregisterEvent(Event::Handle handle);
 }
 
 #endif

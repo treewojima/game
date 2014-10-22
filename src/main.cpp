@@ -3,14 +3,17 @@
 #include <SDL2/SDL.h>
 #include <tclap/CmdLine.h>
 #include "game.hpp"
-#include "math.hpp"
 
 _INITIALIZE_EASYLOGGINGPP
 
-static const int DEFAULT_WINDOW_WIDTH = 640;
-static const int DEFAULT_WINDOW_HEIGHT = 480;
+// Locals
+namespace
+{
+    const int DEFAULT_WINDOW_WIDTH = 640;
+    const int DEFAULT_WINDOW_HEIGHT = 480;
 
-static game::Options parseArgs(int argc, char *argv[]);
+    Game::Options parseArgs(int argc, char *argv[]);
+}
 
 int main(int argc, char *argv[])
 {
@@ -18,7 +21,7 @@ int main(int argc, char *argv[])
 
     try
     {
-        game::run(parseArgs(argc, argv));
+        Game::run(parseArgs(argc, argv));
     }
     catch (TCLAP::ArgException &e)
     {
@@ -29,7 +32,10 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-game::Options parseArgs(int argc, char *argv[])
+// Local functions
+namespace {
+
+Game::Options parseArgs(int argc, char *argv[])
 {
     TCLAP::ValueArg<int> argWidth("w",
                                   "width",
@@ -66,5 +72,7 @@ game::Options parseArgs(int argc, char *argv[])
         throw TCLAP::ArgException(ss.str());
     }
 
-    return game::Options { width, height };
+    return Game::Options { width, height };
+}
+
 }

@@ -4,16 +4,16 @@
 #include "defines.hpp"
 #include <SDL2/SDL.h>
 
-enum class TimerState
-{
-    STOPPED,
-    RUNNING,
-    PAUSED
-};
-
 class Timer
 {
 public:
+    enum class State
+    {
+        STOPPED,
+        RUNNING,
+        PAUSED
+    };
+
     Timer();
     ~Timer();
 
@@ -23,12 +23,12 @@ public:
     void resume();
 
     Uint32 getTicks() const;
-    inline TimerState getState() const { return _state; }
+    inline State getState() const { return _state; }
 
 private:
     Uint32 _startTicks;
     Uint32 _pausedTicks;
-    TimerState _state;
+    State _state;
 };
 
 #endif

@@ -28,7 +28,7 @@ void Texture::load(const std::string &filename)
         throw SDLImageException(ss.str());
     }
 
-    auto texture = SDL_CreateTextureFromSurface(window::getRenderer(),
+    auto texture = SDL_CreateTextureFromSurface(Window::getRenderer(),
                                                 surface);
     SDL_FreeSurface(surface);
     if (texture == nullptr)

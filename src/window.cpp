@@ -4,18 +4,21 @@
 #include <easylogging++.h>
 #include "exception.hpp"
 #include "game.hpp"
+#include "physics.hpp"
 
-static SDL_Window *_window;
-static SDL_Renderer *_renderer;
-
-void window::create(int width, int height)
+// Locals
+namespace
 {
-    LOG(DEBUG) << __FUNCTION__;
+    SDL_Window *_window;
+    SDL_Renderer *_renderer;
+}
 
+void Window::create(int width, int height)
+{
     assert(width > 0);
     assert(height > 0);
 
-    _window = SDL_CreateWindow("opengl",
+    _window = SDL_CreateWindow("sdl",
                                SDL_WINDOWPOS_UNDEFINED,
                                SDL_WINDOWPOS_UNDEFINED,
                                width,
@@ -23,6 +26,9 @@ void window::create(int width, int height)
                                SDL_WINDOW_SHOWN);
     if (_window == nullptr)
         throw SDLException();
+
+    LOG(INFO) << "created window (width = " << width
+              << ", height = " << height << ")";
 
     Uint32 rendererFlags = SDL_RENDERER_ACCELERATED |
                            SDL_RENDERER_PRESENTVSYNC |
@@ -40,30 +46,28 @@ void window::create(int width, int height)
         bool vsync = info.flags & SDL_RENDERER_PRESENTVSYNC;
         bool targetTexture = info.flags & SDL_RENDERER_TARGETTEXTURE;
 
-        std::ostringstream ss;
-        ss << "using renderer \"" << info.name << "\"";
-        ss << " (vsync " << (vsync ? "enabled" : "disabled") << ")";
-        ss << " (rendering to texture " << (targetTexture ? "enabled" : "disabled") << ")";
-
-        LOG(INFO) << ss.str();
+        LOG(INFO) << "using renderer \"" << info.name << "\" "
+                  << "(vsync " << (vsync ? "enabled" : "disabled") << ", "
+                  << "rendering to texture "
+                  << (targetTexture ? "enabled" : "disabled") << ")";
     }
 }
 
-void window::destroy()
+void Window::destroy()
 {
-    LOG(DEBUG) << __FUNCTION__;
-
     SDL_DestroyRenderer(_renderer);
     SDL_DestroyWindow(_window);
+
+    LOG(INFO) << "destroyed window";
 }
 
-void window::clear(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+void Window::clear(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
     SDL_SetRenderDrawColor(_renderer, r, g, b, a);
     SDL_RenderClear(_renderer);
 }
 
-void window::blit(const Texture &texture, int x, int y)
+void Window::blitTexture(const Texture &texture, int x, int y)
 {
     SDL_Rect r;
     r.x = x;
@@ -77,31 +81,41 @@ void window::blit(const Texture &texture, int x, int y)
                    &r);
 }
 
-void window::flip()
+void Window::flip()
 {
     SDL_RenderPresent(_renderer);
 }
 
-void window::setTitle(const std::string &title)
+void Window::setTitle(const std::string &title)
 {
     SDL_SetWindowTitle(_window, title.c_str());
 }
 
-SDL_Renderer *window::getRenderer()
+SDL_Renderer *Window::getRenderer()
 {
     return _renderer;
 }
 
-int window::getWidth()
+int Window::getWidth()
 {
     int w;
     SDL_GetWindowSize(_window, &w, nullptr);
     return w;
 }
 
-int window::getHeight()
+int Window::getHeight()
 {
     int h;
     SDL_GetWindowSize(_window, nullptr, &h);
     return h;
+}
+
+float Window::getWidthMeters()
+{
+    return getWidth() * Physics::PIXELS_TO_METERS;
+}
+
+float Window::getHeightMeters()
+{
+    return getHeight() * Physics::PIXELS_TO_METERS;
 }

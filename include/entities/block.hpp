@@ -4,18 +4,15 @@
 #include "defines.hpp"
 #include "entity.hpp"
 
-class Block : public Entity
+class Block : public BoxEntity
 {
 public:
-    using Entity::Entity;
+    using BoxEntity::BoxEntity;
 
     void draw();
 
-    int getWidth() const { return DEFAULT_WIDTH; }
-    int getHeight() const { return DEFAULT_HEIGHT; }
-
-    static const int DEFAULT_WIDTH = 80;
-    static const int DEFAULT_HEIGHT = 20;
+    static const float DEFAULT_WIDTH;
+    static const float DEFAULT_HEIGHT;
 };
 
 #endif

@@ -3,14 +3,33 @@
 
 #include "defines.hpp"
 #include <Box2D/Box2D.h>
+#include <easylogging++.h>
 
-namespace physics
+namespace Physics
 {
-    void init();
+    extern const float METERS_TO_PIXELS;
+    extern const float PIXELS_TO_METERS;
+
+    void initialize();
     void step(float dt);
-    void shutdown();
 
     b2World &getWorld();
+
+    b2Vec2 getOriginOffset();
+}
+
+// Helper stream operators for b2Vec2
+template <class T>
+inline std::ostream &operator<<(std::ostream &stream, const b2Vec2 &v)
+{
+    stream << "(" << v.x << ", " << v.y << ")";
+    return stream;
+}
+
+inline MAKE_LOGGABLE(b2Vec2, v, stream)
+{
+    stream << "(" << v.x << ", " << v.y << ")";
+    return stream;
 }
 
 #endif

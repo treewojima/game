@@ -6,7 +6,7 @@
 Timer::Timer() :
     _startTicks(0),
     _pausedTicks(0),
-    _state(TimerState::STOPPED)
+    _state(State::STOPPED)
 {
 }
 
@@ -18,7 +18,7 @@ Timer::~Timer()
 
 void Timer::start()
 {
-    _state = TimerState::RUNNING;
+    _state = State::RUNNING;
     _startTicks = SDL_GetTicks();
     _pausedTicks = 0;
 
@@ -29,19 +29,19 @@ void Timer::stop()
 {
     //LOG(DEBUG) << "stopped timer after " << getTicks() << " ticks";
 
-    _state = TimerState::STOPPED;
+    _state = State::STOPPED;
     _startTicks = _pausedTicks = 0;
 }
 
 void Timer::pause()
 {
-    if (_state != TimerState::RUNNING)
+    if (_state != State::RUNNING)
     {
         LOG(WARNING) << "tried to pause non-running timer";
     }
     else
     {
-        _state = TimerState::PAUSED;
+        _state = State::PAUSED;
         _pausedTicks = SDL_GetTicks() - _startTicks;
         _startTicks = 0;
 
@@ -51,13 +51,13 @@ void Timer::pause()
 
 void Timer::resume()
 {
-    if (_state != TimerState::PAUSED)
+    if (_state != State::PAUSED)
     {
         LOG(WARNING) << "tried to resume non-paused timer";
     }
     else
     {
-        _state = TimerState::RUNNING;
+        _state = State::RUNNING;
         _startTicks = SDL_GetTicks() - _pausedTicks;
         _pausedTicks = 0;
 
@@ -71,14 +71,14 @@ Uint32 Timer::getTicks() const
 
     switch (_state)
     {
-    case TimerState::STOPPED:
+    case State::STOPPED:
         break;
 
-    case TimerState::RUNNING:
+    case State::RUNNING:
         time = SDL_GetTicks() - _startTicks;
         break;
 
-    case TimerState::PAUSED:
+    case State::PAUSED:
         time = _pausedTicks;
     }
 

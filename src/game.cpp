@@ -1,3 +1,4 @@
+#include "defines.hpp"
 #include "game.hpp"
 
 #include <algorithm>
@@ -11,79 +12,115 @@
 #include <SDL2/SDL_image.h>
 #include <sstream>
 #include <tclap/CmdLine.h>
-#include "block.hpp"
+
+#include "entities/block.hpp"
+#include "entities/ground.hpp"
+#include "entities/player.hpp"
+#include "entity.hpp"
 #include "exception.hpp"
-#include "ground.hpp"
 #include "physics.hpp"
-#include "ship.hpp"
 #include "texture.hpp"
 #include "timer.hpp"
 
-static const int NUM_BLOCKS = 2;
-
-static bool _running;
-static std::map<game::EventHandle, std::shared_ptr<game::Event>> _events;
-static Timer _fpsTimer;
-
-static std::shared_ptr<Ship> _ship;
-static std::shared_ptr<Ground> _ground;
-static std::list<std::shared_ptr<Block>> _blocks;
-static std::list<std::shared_ptr<Entity>> _collidables;
-
-static void initSDL();
-static void shutdownSDL();
-static void initEntities();
-static void destroyEntities();
-static void registerEvents();
-static void handleEvents();
-static void updateEntities(float dt);
-static void checkCollisions(float dt);
-static void drawScene();
-
-class KeyEvent : public game::Event
+// Locals
+namespace
 {
-public:
-    KeyEvent(SDL_Keycode key,
-             game::EventCallback callback,
-             const std::string debugString_) :
-        Event(debugString_),
-        _key(key),
-        _callback(callback) {}
+    const int NUM_BLOCKS = 2;
 
-    bool test(const SDL_Event &e)
+    bool _running = false;
+    bool _trackMouseMotion = false;
+    bool _stepPhysics = true;
+    std::map<Game::Event::Handle, std::shared_ptr<Game::Event>> _events;
+    Timer _fpsTimer;
+
+    std::shared_ptr<Player> _player;
+    std::shared_ptr<Ground> _ground;
+#ifdef _ENABLE_BLOCKS
+    std::list<std::shared_ptr<Block>> _blocks;
+#endif
+
+    void initSDL();
+    void shutdownSDL();
+    void initEntities();
+    void destroyEntities();
+    void registerEvents();
+    void handleEvents();
+    void updateEntities(float dt);
+    void drawScene();
+
+    // Helper key handler event for registerEvent()
+    class KeyEvent : public Game::Event
     {
-        return (e.type == SDL_KEYDOWN &&
-                e.key.keysym.sym == _key);
-    }
+    public:
+        KeyEvent(SDL_Keycode key,
+                 Game::Event::Callback callback,
+                 const std::string debugString_) :
+            Event(debugString_),
+            _key(key),
+            _callback(callback) {}
 
-    void fire()
+        bool test(const SDL_Event &e)
+        {
+            return (e.type == SDL_KEYDOWN &&
+                    e.key.keysym.sym == _key);
+        }
+
+        void fire(const SDL_Event &e)
+        {
+            _callback(e);
+        }
+
+    private:
+        SDL_Keycode _key;
+        Game::Event::Callback _callback;
+    };
+
+    // Program quit handling event, for signals such as ^C
+    class QuitEvent : public Game::Event
     {
-        _callback();
-    }
+    public:
+        QuitEvent() : Game::Event("QuitEvent") {}
 
-private:
-    SDL_Keycode _key;
-    game::EventCallback _callback;
-};
+        bool test(const SDL_Event &e)
+            { return (e.type == SDL_QUIT); }
 
-class QuitEvent : public game::Event
-{
-public:
-    using game::Event::Event;
+        void fire(const SDL_Event &e)
+        {
+            Game::setRunning(false);
+            LOG(INFO) << "received quit signal";
+        }
+    };
 
-    bool test(const SDL_Event &e)
-        { return (e.type == SDL_QUIT); }
-    void fire()
-        { game::setRunning(false); }
-};
+    // Mouse tracking event
+    class MouseMotionEvent : public Game::Event
+    {
+    public:
+        MouseMotionEvent() : Game::Event("MouseMotionEvent") {}
 
-int game::run(game::Options options)
+        bool test(const SDL_Event &e)
+        {
+            return (_trackMouseMotion && e.type == SDL_MOUSEMOTION &&
+                    (e.motion.xrel || e.motion.yrel));
+        }
+
+        void fire(const SDL_Event &e)
+        {
+            std::cout << "mouse movement: abs("
+                      << e.motion.x << ", "
+                      << e.motion.y << "), rel("
+                      << e.motion.xrel << ", "
+                      << e.motion.yrel << ")"
+                      << std::endl;
+        }
+    };
+}
+
+int Game::run(Game::Options options)
 {
     try
     {
         initSDL();
-        window::create(options.windowWidth, options.windowHeight);
-        physics::init();
+        Window::create(options.windowWidth, options.windowHeight);
     }
     catch (std::exception &e)
     {
@@ -91,8 +128,9 @@ int game::run(game::Options options)
         return 1;
     }
 
-    registerEvents();
+    Physics::initialize();
     initEntities();
+    registerEvents();
 
     Timer stepTimer;
     float dt = 0;
@@ -112,7 +150,7 @@ int game::run(game::Options options)
             float avgFPS = countedFrames / (currentTicks / 1000.f);
             std::ostringstream ss;
             ss << "FPS: " << avgFPS;
-            window::setTitle(ss.str());
+            Window::setTitle(ss.str());
             oldTicks = currentTicks;
         }
 
@@ -121,7 +159,7 @@ int game::run(game::Options options)
             handleEvents();
 
             dt = stepTimer.getTicks() / 1000.f;
-            physics::step(dt);
+            if (_stepPhysics) Physics::step(dt);
             updateEntities(dt);
             stepTimer.start();
 
@@ -138,53 +176,55 @@ int game::run(game::Options options)
     _fpsTimer.stop();
 
     destroyEntities();
-    physics::shutdown();
     shutdownSDL();
     return 0;
 }
 
-bool game::isRunning()
+bool Game::isRunning()
 {
     return _running;
 }
 
-void game::setRunning(bool b)
+void Game::setRunning(bool b)
 {
     _running = b;
 }
 
-game::EventHandle game::registerEvent(SDL_Keycode key,
-                                      game::EventCallback callback,
+Game::Event::Handle Game::registerEvent(SDL_Keycode key,
+                                      Game::Event::Callback callback,
                                       const std::string &debugString)
 {
     return registerEvent(std::shared_ptr<KeyEvent>(
                              new KeyEvent(key, callback, debugString)));
 }
 
-game::EventHandle game::registerEvent(std::shared_ptr<game::Event> event)
+Game::Event::Handle Game::registerEvent(std::shared_ptr<Game::Event> event)
 {
-    static EventHandle currentHandle = 0;
+    static Event::Handle currentHandle = 0;
 
     _events[++currentHandle] = event;
 
+#ifdef _DEBUG_EVENTS
     if (!event->debugString.empty())
         LOG(DEBUG) << "registered event " << event->debugString;
+#endif
+
     return currentHandle;
 }
 
-void game::unregisterEvent(game::EventHandle handle)
+void Game::unregisterEvent(Game::Event::Handle handle)
 {
-    auto i = _events.find(handle);
-    if (!i->second->debugString.empty())
-        LOG(DEBUG) << "unregistered event " << i->second->debugString;
-    _events.erase(i);
+#ifdef _DEBUG_EVENTS
+    //LOG(DEBUG) << "trying to unregister event handle " << handle;
+    if (_events.count(handle))
+        LOG(DEBUG) << "unregistered event " << _events[handle]->debugString;
+#endif
+
+    _events.erase(handle);
 }
 
-void game::registerCollidable(std::shared_ptr<Entity> entity)
-{
-    _collidables.push_back(entity);
-    LOG(DEBUG) << "registered collidable entity " << entity->getName();
-}
+// Local functions
+namespace {
 
 void initSDL()
 {
@@ -196,8 +236,9 @@ void initSDL()
     {
         SDL_version version;
         SDL_GetVersion(&version);
-        LOG(INFO) << "using SDL " << (int)version.major << "."
-                  << (int)version.minor << "." << (int)version.patch;
+        LOG(INFO) << "using SDL " << static_cast<int>(version.major) << "."
+                  << static_cast<int>(version.minor) << "."
+                  << static_cast<int>(version.patch);
     }
 
     auto flags = IMG_INIT_PNG | IMG_INIT_JPG;
@@ -210,80 +251,82 @@ void initSDL()
 
 void shutdownSDL()
 {
-    window::destroy();
+    Window::destroy();
     IMG_Quit();
     SDL_Quit();
 }
 
 void initEntities()
 {
-    _ship = std::shared_ptr<Ship>(new Ship(window::getWidth() / 2,
-                                           window::getHeight() / 2));
-    _ship->initializeBody();
-    game::registerCollidable(_ship);
+    _player = std::make_shared<Player>(
+            b2Vec2(Window::getWidthMeters() / 2, Window::getHeightMeters() / 2));
+    _player->initialize();
 
-    _ground = std::shared_ptr<Ground>(new Ground());
-    _ground->initializeBody();
-    game::registerCollidable(_ground);
+    _ground = std::make_shared<Ground>(
+            "Ground",
+            b2Vec2(),
+            b2Vec2(Window::getWidthMeters(), Ground::DEFAULT_HEIGHT),
+            false);
+    _ground->initialize();
 
+#ifdef _ENABLE_BLOCKS
     // This should probably test for overlap and repeated numbers, but meh
     std::random_device rd;
     std::default_random_engine generator(rd());
-    std::uniform_int_distribution<int>
-            x_distribution(0, window::getWidth() - Block::DEFAULT_WIDTH);
-    std::uniform_int_distribution<int>
-            y_distribution(0, window::getHeight() - Block::DEFAULT_HEIGHT);
+    std::uniform_real_distribution<float>
+            x_distribution(0, Window::getWidthMeters() - Block::DEFAULT_WIDTH);
+    std::uniform_real_distribution<float>
+            y_distribution(0, Window::getHeightMeters() - Block::DEFAULT_HEIGHT);
     for (int i = 0; i < NUM_BLOCKS; i++)
     {
         std::ostringstream ss;
         ss << "Block" << i;
+        float x = x_distribution(generator);
+        float y = y_distribution(generator);
 
-        int x = x_distribution(generator);
-        int y = y_distribution(generator);
-        auto block = std::shared_ptr<Block>(new Block(ss.str(), x, y));
-
-        block->initializeBody();
+        auto block = std::make_shared<Block>(
+                ss.str(),
+                b2Vec2(x, y),
+                b2Vec2(Block::DEFAULT_WIDTH, Block::DEFAULT_HEIGHT));
+        block->initialize();
         _blocks.push_back(block);
-        game::registerCollidable(block);
 
-        LOG(DEBUG) << "creating block " << ss.str() << "(" << x << ", " << y << ")";
+        //LOG(DEBUG) << "creating block " << ss.str() << "(" << x << ", " << y << ")";
     }
+#endif
 }
 
 void destroyEntities()
 {
-    _collidables.clear();
-    _blocks.clear();
-    _ship.reset();
+    // Warning: this invalidates ALL entity smart pointers!
+
+#ifdef _ENABLE_BLOCKS
+    for (auto &block : _blocks)
+        block.reset();
+#endif
+    _player.reset();
     _ground.reset();
 }
 
 void registerEvents()
 {
-    game::registerEvent(
-            std::shared_ptr<game::Event>(new QuitEvent("QuitEvent")));
-    game::registerEvent(
+    Game::registerEvent(std::make_shared<QuitEvent>());
+
+    Game::registerEvent(
             SDLK_ESCAPE,
-            []() { game::setRunning(false); },
+            [](const SDL_Event &e) { Game::setRunning(false); },
             "EscapeEvent");
-    game::registerEvent(
-            SDLK_SPACE,
-            []() {
-                switch (_fpsTimer.getState())
-                {
-                case TimerState::RUNNING:
-                    _fpsTimer.pause();
-                    break;
 
-                case TimerState::PAUSED:
-                    _fpsTimer.resume();
-                    break;
+    Game::registerEvent(
+            SDLK_m,
+            [&](const SDL_Event &e) { _trackMouseMotion = !_trackMouseMotion; },
+            "MouseMotionToggleEvent");
+    Game::registerEvent(std::make_shared<MouseMotionEvent>());
 
-                case TimerState::STOPPED:
-                    LOG(WARNING) << "timer isn't running (why?)";
-                }
-            },
-            "TimerToggleEvent");
+    Game::registerEvent(
+            SDLK_s,
+            [&](const SDL_Event &e) { _stepPhysics = !_stepPhysics; },
+            "StepPhysicsToggleEvent");
 }
 
 void handleEvents()
@@ -293,53 +336,35 @@ void handleEvents()
     {
         for (auto &pair : _events)
         {
-            if (pair.second->test(event)) pair.second->fire();
+            if (pair.second->test(event)) pair.second->fire(event);
         }
     }
 }
 
 void updateEntities(float dt)
 {
-    _ship->update(dt);
+    _player->update(dt);
+    _ground->update(dt);
 
+#ifdef _ENABLE_BLOCKS
     for (auto &block : _blocks)
-    {
         block->update(dt);
-    }
-
-    //checkCollisions(dt);
-}
-
-void checkCollisions(float dt)
-{
-    for (auto &entity : _collidables)
-    {
-        for (auto &other : _collidables)
-        {
-            if (entity != other)
-            {
-                auto entityBB = entity->getBoundingBox();
-                auto otherBB = other->getBoundingBox();
-                SDL_Rect intersection;
-                if (SDL_IntersectRect(&entityBB, &otherBB, &intersection))
-                {
-                    entity->collide(dt, other, intersection);
-                }
-            }
-        }
-    }
+#endif
 }
 
 void drawScene()
 {
-    window::clear(255, 255, 255, 0);
+    Window::clear(255, 255, 255, 0);
 
-    _ship->draw();
+    _player->draw();
+    _ground->draw();
 
+#ifdef _ENABLE_BLOCKS
     for (auto &block : _blocks)
-    {
         block->draw();
-    }
+#endif
 
-    window::flip();
+    Window::flip();
+}
+
 }

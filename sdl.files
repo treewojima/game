@@ -1,7 +1,6 @@
-include/entities/asteroid.hpp
 include/entities/block.hpp
 include/entities/ground.hpp
-include/entities/ship.hpp
+include/entities/player.hpp
 include/defines.hpp
 include/entity.hpp
 include/exception.hpp
@@ -11,10 +10,9 @@ include/physics.hpp
 include/texture.hpp
 include/timer.hpp
 include/window.hpp
-src/entities/asteroid.cpp
 src/entities/block.cpp
 src/entities/ground.cpp
-src/entities/ship.cpp
+src/entities/player.cpp
 src/entity.cpp
 src/game.cpp
 src/main.cpp

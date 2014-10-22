@@ -5,20 +5,14 @@
 #include "entity.hpp"
 #include "window.hpp"
 
-class Ground : public Entity
+class Ground : public BoxEntity
 {
 public:
-    Ground();
-
-    void initializeBody();
+    using BoxEntity::BoxEntity;
 
     void draw();
 
-    int getWidth() const { return window::getWidth(); }
-    int getHeight() const { return HEIGHT; }
-
-private:
-    static const int HEIGHT = 20;
+    static const float DEFAULT_HEIGHT;
 };
 
 #endif
