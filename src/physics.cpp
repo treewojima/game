@@ -38,10 +38,3 @@ b2World &Physics::getWorld()
 {
     return *_world;
 }
-
-b2Vec2 Physics::getOriginOffset()
-{
-    float offsetX = Window::getWidth() / 2;
-    float offsetY = Window::getHeight() / 2;
-    return b2Vec2(offsetX, offsetY);
-}

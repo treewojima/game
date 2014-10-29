@@ -3,7 +3,8 @@
 
 #include "defines.hpp"
 #include "entity.hpp"
-#include "window.hpp"
+
+#ifdef _ENABLE_GROUND
 
 class Ground : public BoxEntity
 {
@@ -14,5 +15,7 @@ public:
 
     static const float DEFAULT_HEIGHT;
 };
+
+#endif
 
 #endif

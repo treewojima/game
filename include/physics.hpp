@@ -14,8 +14,6 @@ namespace Physics
     void step(float dt);
 
     b2World &getWorld();
-
-    b2Vec2 getOriginOffset();
 }
 
 // Helper stream operators for b2Vec2

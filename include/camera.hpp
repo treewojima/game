@@ -32,6 +32,8 @@ public:
     float getWorldHeight() const;
     float getScreenWidth() const;
     float getScreenHeight() const;
+    b2Vec2 getScreenMinInWorld() const { return _screenMinInWorld; }
+    b2Vec2 getScreenMaxInWorld() const { return _screenMaxInWorld; }
 
     void setScreenMin(const b2Vec2 &vec);
     void setScreenMax(const b2Vec2 &vec);

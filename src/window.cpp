@@ -2,15 +2,16 @@
 
 #include <cassert>
 #include <easylogging++.h>
+#include <GL/glew.h>
+#include <SDL2/SDL.h>
 #include "exception.hpp"
 #include "game.hpp"
-#include "physics.hpp"
 
 // Locals
 namespace
 {
     SDL_Window *_window;
-    SDL_Renderer *_renderer;
+    SDL_GLContext _glContext;
 }
 
 void Window::create(int width, int height)
@@ -18,56 +19,43 @@ void Window::create(int width, int height)
     assert(width > 0);
     assert(height > 0);
 
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
     _window = SDL_CreateWindow("sdl",
                                SDL_WINDOWPOS_UNDEFINED,
                                SDL_WINDOWPOS_UNDEFINED,
                                width,
                                height,
-                               SDL_WINDOW_SHOWN);
+                               SDL_WINDOW_OPENGL);
     if (_window == nullptr)
         throw SDLException();
 
     LOG(INFO) << "created window (width = " << width
               << ", height = " << height << ")";
 
-    Uint32 rendererFlags = SDL_RENDERER_ACCELERATED |
-                           SDL_RENDERER_PRESENTVSYNC |
-                           SDL_RENDERER_TARGETTEXTURE;
-    _renderer = SDL_CreateRenderer(_window, -1, rendererFlags);
-    if (_renderer == nullptr)
+    _glContext = SDL_GL_CreateContext(_window);
+    if (!_glContext)
     {
         SDL_DestroyWindow(_window);
         throw SDLException();
-    }
-    else
-    {
-        SDL_RendererInfo info;
-        SDL_GetRendererInfo(_renderer, &info);
-        bool vsync = info.flags & SDL_RENDERER_PRESENTVSYNC;
-        bool targetTexture = info.flags & SDL_RENDERER_TARGETTEXTURE;
-
-        LOG(INFO) << "using renderer \"" << info.name << "\" "
-                  << "(vsync " << (vsync ? "enabled" : "disabled") << ", "
-                  << "rendering to texture "
-                  << (targetTexture ? "enabled" : "disabled") << ")";
     }
 }
 
 void Window::destroy()
 {
-    SDL_DestroyRenderer(_renderer);
+    SDL_GL_DeleteContext(_glContext);
     SDL_DestroyWindow(_window);
 
     LOG(INFO) << "destroyed window";
 }
 
-void Window::clear(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+void Window::clear(float r, float g, float b, float a)
 {
-    SDL_SetRenderDrawColor(_renderer, r, g, b, a);
-    SDL_RenderClear(_renderer);
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Window::blitTexture(const Texture &texture, int x, int y)
+/*void Window::blitTexture(const Texture &texture, int x, int y)
 {
     SDL_Rect r;
     r.x = x;
@@ -79,11 +67,11 @@ void Window::blitTexture(const Texture &texture, int x, int y)
                    texture.getRawTexture(),
                    nullptr,
                    &r);
-}
+}*/
 
 void Window::flip()
 {
-    SDL_RenderPresent(_renderer);
+    SDL_GL_SwapWindow(_window);
 }
 
 void Window::setTitle(const std::string &title)
@@ -91,13 +79,10 @@ void Window::setTitle(const std::string &title)
     SDL_SetWindowTitle(_window, title.c_str());
 }
 
-SDL_Renderer *Window::getRenderer()
-{
-    return _renderer;
-}
-
+#if 0
 float Window::getWidth()
 {
+    Game::getCamera().
     return getWidthPixels() * Physics::PIXELS_TO_METERS;
 }
 
@@ -119,3 +104,4 @@ int Window::getHeightPixels()
     SDL_GetWindowSize(_window, nullptr, &h);
     return h;
 }
+#endif

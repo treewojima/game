@@ -85,10 +85,10 @@ void BoxEntity::initialize()
 
 void BoxEntity::draw()
 {
-    auto r = getSDLRect();
+    /*auto r = getSDLRect();
     auto renderer = Window::getRenderer();
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderFillRect(renderer, &r);
+    SDL_RenderFillRect(renderer, &r);*/
 }
 
 #if 0

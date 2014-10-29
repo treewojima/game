@@ -1,4 +1,7 @@
+#include "defines.hpp"
 #include "texture.hpp"
+
+#ifdef _ENABLE_TEXTURES
 
 #include <easylogging++.h>
 #include <SDL2/SDL_image.h>
@@ -42,3 +45,5 @@ void Texture::load(const std::string &filename)
         _texture = texture;
     }
 }
+
+#endif

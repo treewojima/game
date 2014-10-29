@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <Box2D/Box2D.h>
 #include <easylogging++.h>
+#include <GL/glew.h>
 #include <list>
 #include <map>
 #include <memory>
@@ -43,6 +44,7 @@ namespace
 #endif
 
     void initSDL();
+    void initGL();
     void shutdownSDL();
     void initEntities();
     void destroyEntities();
@@ -124,23 +126,25 @@ int Game::run(Game::Options options)
     {
         initSDL();
         Window::create(options.windowWidth, options.windowHeight);
+
+        auto screenRatio = static_cast<float>(options.windowWidth) /
+                           static_cast<float>(options.windowHeight);
+        _camera = std::unique_ptr<Camera>(
+            new Camera(b2Vec2(0, 0),                                      // worldMin
+                       b2Vec2(10 * screenRatio, 10),                      // worldMax
+                       b2Vec2(0, 0),                                      // screenMin
+                       b2Vec2(options.windowWidth, options.windowHeight), // screenMax
+                       b2Vec2(0, 0),                                      // screenMinInWorld
+                       b2Vec2(10 * screenRatio, 10)));                    // screenMaxInWorld
+        //LOG(DEBUG) << *_camera;
+
+        initGL();
     }
     catch (std::exception &e)
     {
         LOG(ERROR) << "EXCEPTION: " << e.what();
         return 1;
     }
-
-    auto screenRatio = static_cast<float>(options.windowWidth) /
-                       static_cast<float>(options.windowHeight);
-    _camera = std::unique_ptr<Camera>(
-        new Camera(b2Vec2(0, 0),                                      // worldMin
-                   b2Vec2(10 * screenRatio, 10),                      // worldMax
-                   b2Vec2(0, 0),                                      // screenMin
-                   b2Vec2(options.windowWidth, options.windowHeight), // screenMax
-                   b2Vec2(0, 0),                                      // screenMinInWorld
-                   b2Vec2(10 * screenRatio, 10)));                    // screenMaxInWorld
-    LOG(DEBUG) << *_camera;
 
     Physics::initialize();
     initEntities();
@@ -189,6 +193,7 @@ int Game::run(Game::Options options)
     }
     _fpsTimer.stop();
 
+    Window::destroy();
     destroyEntities();
     shutdownSDL();
     return 0;
@@ -268,9 +273,40 @@ void initSDL()
     }
 }
 
+void initGL()
+{
+    auto errorCode = glewInit();
+    if (errorCode != GLEW_OK)
+        throw GLEWException(errorCode);
+
+    LOG(INFO) << "using GLEW " << glewGetString(GLEW_VERSION);
+    LOG(INFO) << "using OpenGL " << glGetString(GL_VERSION);
+
+    glEnable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+
+    /*glClearColor(0, 0, 0, 0);
+    glViewport(0, 0, windowWidth, windowHeight);
+    glClear(GL_COLOR_BUFFER_BIT);*/
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    auto screenMinInWorld = _camera->getScreenMinInWorld();
+    auto screenMaxInWorld = _camera->getScreenMaxInWorld();
+    gluOrtho2D(screenMinInWorld.x, screenMaxInWorld.x,
+               screenMinInWorld.y, screenMaxInWorld.y);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    errorCode = glGetError();
+    if (errorCode != GL_NO_ERROR)
+        throw GLException(errorCode);
+}
+
 void shutdownSDL()
 {
-    Window::destroy();
     IMG_Quit();
     SDL_Quit();
 }
@@ -385,7 +421,7 @@ void updateEntities(float dt)
 
 void drawScene()
 {
-    Window::clear(255, 255, 255, 0);
+    Window::clear(1, 1, 1);
 
     _player->draw();
 

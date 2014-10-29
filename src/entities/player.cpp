@@ -76,22 +76,5 @@ void Player::initialize()
 
 void Player::draw()
 {
-    auto renderer = Window::getRenderer();
 
-    // First, draw the filled portion of the block
-    auto r = getSDLRect();
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 0);
-    SDL_RenderFillRect(renderer, &r);
-
-    // Next, draw a set of outlines
-    static const int LINE_WIDTH = 2;
-    enum { TOP, BOTTOM, LEFT, RIGHT, NUM_RECTS };
-    SDL_Rect rects[NUM_RECTS];
-    rects[TOP] = { r.x, r.y, r.w, LINE_WIDTH };
-    rects[BOTTOM] = { r.x, r.y + r.h - LINE_WIDTH, r.w, LINE_WIDTH };
-    rects[LEFT] = { r.x, r.y, LINE_WIDTH, r.h };
-    rects[RIGHT] = { r.x + r.w - LINE_WIDTH, r.y, LINE_WIDTH, r.h };
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 96, 0);
-    SDL_RenderFillRects(renderer, rects, NUM_RECTS);
 }

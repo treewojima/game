@@ -4,6 +4,8 @@
 #include "defines.hpp"
 #include "entity.hpp"
 
+#ifdef _ENABLE_BLOCKS
+
 class Block : public BoxEntity
 {
 public:
@@ -14,5 +16,6 @@ public:
     static const float DEFAULT_WIDTH;
     static const float DEFAULT_HEIGHT;
 };
+#endif
 
 #endif

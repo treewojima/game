@@ -6,6 +6,8 @@
 #include <string>
 #include "exception.hpp"
 
+#ifdef _ENABLE_TEXTURES
+
 class Texture
 {
 public:
@@ -38,3 +40,4 @@ private:
 
 #endif
 
+#endif

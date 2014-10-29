@@ -1,6 +1,8 @@
 #include "defines.hpp"
 #include "entities/block.hpp"
 
+#ifdef _ENABLE_BLOCKS
+
 #include <SDL2/SDL.h>
 #include "physics.hpp"
 #include "window.hpp"
@@ -33,3 +35,5 @@ void Block::draw()
     SDL_SetRenderDrawColor(renderer, 0, 0, 96, 0);
     SDL_RenderFillRects(renderer, rects, NUM_RECTS);
 }
+
+#endif
