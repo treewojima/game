@@ -48,7 +48,6 @@ public:
               bool dynamic = true);
 
     void initialize();
-    void draw();
 
     inline float getWidth() const { return _dimensions.x; }
     inline float getHeight() const { return _dimensions.y; }

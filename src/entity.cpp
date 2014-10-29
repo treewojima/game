@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <easylogging++.h>
+#include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <sstream>
 #include "exception.hpp"
@@ -81,14 +82,6 @@ void BoxEntity::initialize()
     fixtureDef.friction = 0.3f;
     fixtureDef.restitution = 0.8f;
     getBody().CreateFixture(&fixtureDef);
-}
-
-void BoxEntity::draw()
-{
-    /*auto r = getSDLRect();
-    auto renderer = Window::getRenderer();
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderFillRect(renderer, &r);*/
 }
 
 #if 0

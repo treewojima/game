@@ -277,7 +277,11 @@ void initGL()
 {
     auto errorCode = glewInit();
     if (errorCode != GLEW_OK)
+    {
+        Window::destroy();
+        shutdownSDL();
         throw GLEWException(errorCode);
+    }
 
     LOG(INFO) << "using GLEW " << glewGetString(GLEW_VERSION);
     LOG(INFO) << "using OpenGL " << glGetString(GL_VERSION);
@@ -285,9 +289,7 @@ void initGL()
     glEnable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
 
-    /*glClearColor(0, 0, 0, 0);
-    glViewport(0, 0, windowWidth, windowHeight);
-    glClear(GL_COLOR_BUFFER_BIT);*/
+    //glViewport(0, 0, windowWidth, windowHeight);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -302,7 +304,11 @@ void initGL()
 
     errorCode = glGetError();
     if (errorCode != GL_NO_ERROR)
+    {
+        Window::destroy();
+        shutdownSDL();
         throw GLException(errorCode);
+    }
 }
 
 void shutdownSDL()

@@ -76,5 +76,11 @@ void Player::initialize()
 
 void Player::draw()
 {
-
+    auto position = getPosition();
+    auto dimensions = getDimensions();
+    glColor3f(1, 0, 0);
+    glRectf(position.x,
+            position.y,
+            position.x + dimensions.x,
+            position.y + dimensions.y);
 }
