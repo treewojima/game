@@ -96,26 +96,26 @@ SDL_Renderer *Window::getRenderer()
     return _renderer;
 }
 
-int Window::getWidth()
+float Window::getWidth()
+{
+    return getWidthPixels() * Physics::PIXELS_TO_METERS;
+}
+
+float Window::getHeight()
+{
+    return getHeightPixels() * Physics::PIXELS_TO_METERS;
+}
+
+int Window::getWidthPixels()
 {
     int w;
     SDL_GetWindowSize(_window, &w, nullptr);
     return w;
 }
 
-int Window::getHeight()
+int Window::getHeightPixels()
 {
     int h;
     SDL_GetWindowSize(_window, nullptr, &h);
     return h;
-}
-
-float Window::getWidthMeters()
-{
-    return getWidth() * Physics::PIXELS_TO_METERS;
-}
-
-float Window::getHeightMeters()
-{
-    return getHeight() * Physics::PIXELS_TO_METERS;
 }

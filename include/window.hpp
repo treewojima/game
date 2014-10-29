@@ -18,10 +18,10 @@ namespace Window
     void setTitle(const std::string &title);
 
     SDL_Renderer *getRenderer();
-    int getWidth();
-    int getHeight();
-    float getWidthMeters();
-    float getHeightMeters();
+    float getWidth();
+    float getHeight();
+    int getWidthPixels();
+    int getHeightPixels();
 }
 
 #endif

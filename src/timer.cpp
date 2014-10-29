@@ -2,6 +2,7 @@
 #include "timer.hpp"
 
 #include <easylogging++.h>
+#include <SDL2/SDL.h>
 
 Timer::Timer() :
     _startTicks(0),
@@ -65,9 +66,9 @@ void Timer::resume()
     }
 }
 
-Uint32 Timer::getTicks() const
+long Timer::getTicks() const
 {
-    Uint32 time = 0;
+    long time = 0;
 
     switch (_state)
     {

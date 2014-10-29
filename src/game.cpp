@@ -32,9 +32,12 @@ namespace
     bool _stepPhysics = true;
     std::map<Game::Event::Handle, std::shared_ptr<Game::Event>> _events;
     Timer _fpsTimer;
+    std::unique_ptr<Camera> _camera;
 
     std::shared_ptr<Player> _player;
+#ifdef _ENABLE_GROUND
     std::shared_ptr<Ground> _ground;
+#endif
 #ifdef _ENABLE_BLOCKS
     std::list<std::shared_ptr<Block>> _blocks;
 #endif
@@ -128,6 +131,17 @@ int Game::run(Game::Options options)
         return 1;
     }
 
+    auto screenRatio = static_cast<float>(options.windowWidth) /
+                       static_cast<float>(options.windowHeight);
+    _camera = std::unique_ptr<Camera>(
+        new Camera(b2Vec2(0, 0),                                      // worldMin
+                   b2Vec2(10 * screenRatio, 10),                      // worldMax
+                   b2Vec2(0, 0),                                      // screenMin
+                   b2Vec2(options.windowWidth, options.windowHeight), // screenMax
+                   b2Vec2(0, 0),                                      // screenMinInWorld
+                   b2Vec2(10 * screenRatio, 10)));                    // screenMaxInWorld
+    LOG(DEBUG) << *_camera;
+
     Physics::initialize();
     initEntities();
     registerEvents();
@@ -188,6 +202,11 @@ bool Game::isRunning()
 void Game::setRunning(bool b)
 {
     _running = b;
+}
+
+Camera &Game::getCamera()
+{
+    return *_camera;
 }
 
 Game::Event::Handle Game::registerEvent(SDL_Keycode key,
@@ -258,25 +277,30 @@ void shutdownSDL()
 
 void initEntities()
 {
-    _player = std::make_shared<Player>(
-            b2Vec2(Window::getWidthMeters() / 2, Window::getHeightMeters() / 2));
+    auto pos = b2Vec2(_camera->getWorldWidth() / 4,
+                      _camera->getWorldHeight() / 2);
+    _player = std::make_shared<Player>(pos);
     _player->initialize();
+    LOG(DEBUG) << *_player;
 
+#ifdef _ENABLE_GROUND
     _ground = std::make_shared<Ground>(
             "Ground",
-            b2Vec2(),
-            b2Vec2(Window::getWidthMeters(), Ground::DEFAULT_HEIGHT),
+            b2Vec2(-Window::getWidth(), 0),
+            b2Vec2(Window::getWidth() * 3, Ground::DEFAULT_HEIGHT),
             false);
     _ground->initialize();
+    LOG(DEBUG) << *_ground;
+#endif
 
 #ifdef _ENABLE_BLOCKS
     // This should probably test for overlap and repeated numbers, but meh
     std::random_device rd;
     std::default_random_engine generator(rd());
     std::uniform_real_distribution<float>
-            x_distribution(0, Window::getWidthMeters() - Block::DEFAULT_WIDTH);
+            x_distribution(0, Window::getWidth() - Block::DEFAULT_WIDTH);
     std::uniform_real_distribution<float>
-            y_distribution(0, Window::getHeightMeters() - Block::DEFAULT_HEIGHT);
+            y_distribution(0, Window::getHeight() - Block::DEFAULT_HEIGHT);
     for (int i = 0; i < NUM_BLOCKS; i++)
     {
         std::ostringstream ss;
@@ -304,8 +328,12 @@ void destroyEntities()
     for (auto &block : _blocks)
         block.reset();
 #endif
+
     _player.reset();
+
+#ifdef _ENABLE_GROUND
     _ground.reset();
+#endif
 }
 
 void registerEvents()
@@ -344,7 +372,10 @@ void handleEvents()
 void updateEntities(float dt)
 {
     _player->update(dt);
+
+#ifdef _ENABLE_GROUND
     _ground->update(dt);
+#endif
 
 #ifdef _ENABLE_BLOCKS
     for (auto &block : _blocks)
@@ -357,7 +388,10 @@ void drawScene()
     Window::clear(255, 255, 255, 0);
 
     _player->draw();
+
+#ifdef _ENABLE_GROUND
     _ground->draw();
+#endif
 
 #ifdef _ENABLE_BLOCKS
     for (auto &block : _blocks)

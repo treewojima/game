@@ -3,6 +3,7 @@
 
 #include "defines.hpp"
 #include <Box2D/Box2D.h>
+#include <easylogging++.h>
 #include <memory>
 #include <SDL2/SDL.h>
 #include <string>
@@ -19,13 +20,15 @@ public:
     virtual void initialize() = 0;
     virtual void update(float dt) {}
     virtual void draw() = 0;
-    virtual void collide(float dt, std::shared_ptr<Entity> other, SDL_Rect intersection);
 
     inline std::string getName() const { return _name; }
     virtual float getWidth() const = 0;
     virtual float getHeight() const = 0;
     inline b2Body &getBody() const { return *_body; }
     inline const b2Vec2 &getPosition() const { return getBody().GetPosition(); }
+    inline const b2Vec2 getDimensions() const { return b2Vec2(getWidth(), getHeight()); }
+
+    virtual std::string toString() const;
 
 protected:
     SDL_Rect getSDLRect() const;
@@ -75,5 +78,19 @@ private:
     std::shared_ptr<Texture> _texture;
 };
 #endif
+
+// Helper stream operators
+template <class T>
+inline std::ostream &operator<<(std::ostream &stream, const Entity &e)
+{
+    stream << e.toString();
+    return stream;
+}
+
+inline MAKE_LOGGABLE(Entity, e, stream)
+{
+    stream << e.toString();
+    return stream;
+}
 
 #endif

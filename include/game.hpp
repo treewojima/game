@@ -5,6 +5,7 @@
 #include <functional>
 #include <SDL2/SDL.h>
 #include <string>
+#include "camera.hpp"
 #include "entity.hpp"
 #include "window.hpp"
 
@@ -23,6 +24,7 @@ namespace Game
 
         Event(const std::string &debugString_ = std::string()) :
             debugString(debugString_) {}
+
         virtual ~Event()
         {
 #ifdef _DEBUG_EVENTS
@@ -40,6 +42,8 @@ namespace Game
 
     bool isRunning();
     void setRunning(bool b);
+
+    Camera &getCamera();
 
     Event::Handle registerEvent(SDL_Keycode key,
                               Event::Callback callback,

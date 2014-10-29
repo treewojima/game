@@ -22,13 +22,13 @@ namespace Physics
 template <class T>
 inline std::ostream &operator<<(std::ostream &stream, const b2Vec2 &v)
 {
-    stream << "(" << v.x << ", " << v.y << ")";
+    stream << "b2Vec2(" << v.x << ", " << v.y << ")";
     return stream;
 }
 
 inline MAKE_LOGGABLE(b2Vec2, v, stream)
 {
-    stream << "(" << v.x << ", " << v.y << ")";
+    stream << "b2Vec2(" << v.x << ", " << v.y << ")";
     return stream;
 }
 

@@ -2,7 +2,6 @@
 #define __TIMER_HPP__
 
 #include "defines.hpp"
-#include <SDL2/SDL.h>
 
 class Timer
 {
@@ -22,12 +21,12 @@ public:
     void pause();
     void resume();
 
-    Uint32 getTicks() const;
+    long getTicks() const;
     inline State getState() const { return _state; }
 
 private:
-    Uint32 _startTicks;
-    Uint32 _pausedTicks;
+    long _startTicks;
+    long _pausedTicks;
     State _state;
 };
 

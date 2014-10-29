@@ -1,12 +1,13 @@
 #include "defines.hpp"
 #include "entities/player.hpp"
 
+#include <iostream>
 #include "game.hpp"
 #include "physics.hpp"
 #include "window.hpp"
 
-const float Player::WIDTH = 0.2;
-const float Player::HEIGHT = 0.2;
+const float Player::WIDTH = 1;
+const float Player::HEIGHT = 1;
 
 Player::Player(const b2Vec2 &position) :
     BoxEntity("Player", position, b2Vec2(WIDTH, HEIGHT))
@@ -37,7 +38,7 @@ Player::Player(const b2Vec2 &position) :
             SDLK_UP,
             [this](const SDL_Event &e)
             {
-                getBody().ApplyLinearImpulse(b2Vec2(0, -magnitude),
+                getBody().ApplyLinearImpulse(b2Vec2(0, magnitude),
                                              getBody().GetWorldCenter(),
                                              true);
             },
@@ -47,7 +48,7 @@ Player::Player(const b2Vec2 &position) :
             SDLK_DOWN,
             [this](const SDL_Event &e)
             {
-                getBody().ApplyLinearImpulse(b2Vec2(0, magnitude),
+                getBody().ApplyLinearImpulse(b2Vec2(0, -magnitude),
                                              getBody().GetWorldCenter(),
                                              true);
             },
@@ -69,14 +70,28 @@ void Player::initialize()
     fixtureDef.shape = &dynamicBox;
     fixtureDef.density = 1.f;
     fixtureDef.friction = 0.3f;
-    fixtureDef.restitution = 1.f;
+    fixtureDef.restitution = 0.8f;
     getBody().CreateFixture(&fixtureDef);
 }
 
 void Player::draw()
 {
-    auto r = getSDLRect();
     auto renderer = Window::getRenderer();
+
+    // First, draw the filled portion of the block
+    auto r = getSDLRect();
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 0);
     SDL_RenderFillRect(renderer, &r);
+
+    // Next, draw a set of outlines
+    static const int LINE_WIDTH = 2;
+    enum { TOP, BOTTOM, LEFT, RIGHT, NUM_RECTS };
+    SDL_Rect rects[NUM_RECTS];
+    rects[TOP] = { r.x, r.y, r.w, LINE_WIDTH };
+    rects[BOTTOM] = { r.x, r.y + r.h - LINE_WIDTH, r.w, LINE_WIDTH };
+    rects[LEFT] = { r.x, r.y, LINE_WIDTH, r.h };
+    rects[RIGHT] = { r.x + r.w - LINE_WIDTH, r.y, LINE_WIDTH, r.h };
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 96, 0);
+    SDL_RenderFillRects(renderer, rects, NUM_RECTS);
 }

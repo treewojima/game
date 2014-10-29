@@ -13,7 +13,7 @@ const float Physics::PIXELS_TO_METERS = 1.f / Physics::METERS_TO_PIXELS;
 // Locals
 namespace
 {
-    const b2Vec2 INITIAL_GRAVITY(0, 10);
+    const b2Vec2 INITIAL_GRAVITY(0, -2);
     const float TIME_STEP = 1.f / 60.f;
     const int VELOCITY_ITERATIONS = 6;
     const int POSITION_ITERATIONS = 2;
@@ -41,7 +41,7 @@ b2World &Physics::getWorld()
 
 b2Vec2 Physics::getOriginOffset()
 {
-    float offsetX = Window::getWidthMeters() / 2;
-    float offsetY = Window::getHeightMeters() / 2;
+    float offsetX = Window::getWidth() / 2;
+    float offsetY = Window::getHeight() / 2;
     return b2Vec2(offsetX, offsetY);
 }

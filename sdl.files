@@ -22,3 +22,5 @@ src/texture.cpp
 src/timer.cpp
 src/window.cpp
 Makefile
+include/camera.hpp
+src/camera.cpp

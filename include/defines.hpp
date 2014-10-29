@@ -6,5 +6,6 @@
 
 //#define _DEBUG_EVENTS
 //#define _ENABLE_BLOCKS
+#define _ENABLE_GROUND
 
 #endif

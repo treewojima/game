@@ -10,7 +10,7 @@ class Ground : public BoxEntity
 public:
     using BoxEntity::BoxEntity;
 
-    void draw();
+    //void draw();
 
     static const float DEFAULT_HEIGHT;
 };

@@ -5,7 +5,9 @@
 #include <cmath>
 #include <easylogging++.h>
 #include <SDL2/SDL.h>
+#include <sstream>
 #include "exception.hpp"
+#include "game.hpp"
 #include "physics.hpp"
 #include "window.hpp"
 
@@ -24,7 +26,7 @@ Entity::Entity(const std::string &name,
     // Do the rest of the body/fixture initialization in initialize(), since
     // the default implementation uses virtual functions
 
-    LOG(DEBUG) << "created entity " << _name << position;
+    //LOG(DEBUG) << "created entity " << _name << "[" << position << "]";
 }
 
 Entity::~Entity()
@@ -34,22 +36,23 @@ Entity::~Entity()
     LOG(DEBUG) << "destroyed entity \"" << _name << "\"";
 }
 
-void Entity::collide(float dt, std::shared_ptr<Entity> other, SDL_Rect intersection)
+std::string Entity::toString() const
 {
+    std::ostringstream ss;
+    ss << "Entity[name = \"" << getName() << "\", position = " << getPosition()
+       << ", dimensions = " << getDimensions() << "]";
+    return ss.str();
 }
 
 SDL_Rect Entity::getSDLRect() const
 {
-    SDL_Rect r;
-    auto position = getPosition();
-    auto offset = Physics::getOriginOffset();
+    auto position = Game::getCamera().worldToScreen(getPosition(), true);
+    auto dimensions = Game::getCamera().worldToScreen(getDimensions());
 
-    r.x = (position.x + offset.x) * Physics::METERS_TO_PIXELS;
-    r.y = (-position.y + offset.y) * Physics::METERS_TO_PIXELS;
-    r.w = getWidth() * Physics::METERS_TO_PIXELS;
-    r.h = getHeight() * Physics::METERS_TO_PIXELS;
-
-    return r;
+    return SDL_Rect { static_cast<int>(std::round(position.x)),
+                      static_cast<int>(std::round(position.y)),
+                      static_cast<int>(std::round(dimensions.x)),
+                      static_cast<int>(std::round(dimensions.y)) };
 }
 
 void Entity::setBody(b2Body *body)
