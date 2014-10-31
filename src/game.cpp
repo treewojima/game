@@ -15,6 +15,7 @@
 #include <tclap/CmdLine.h>
 
 #include "entities/ball.hpp"
+#include "entities/block.hpp"
 #include "entities/paddle.hpp"
 #include "entities/walls.hpp"
 #include "exception.hpp"
@@ -33,9 +34,7 @@ namespace
     Timer _fpsTimer;
     std::unique_ptr<Camera> _camera;
 
-    std::shared_ptr<Paddle> _paddle;
-    std::shared_ptr<Ball> _ball;
-    std::shared_ptr<Walls> _walls;
+    std::list<std::shared_ptr<Entity>> _entities, _deadEntities;
 
     void initSDL();
     void initGL();
@@ -45,6 +44,7 @@ namespace
     void registerEvents();
     void handleEvents();
     void updateEntities(float dt);
+    void cullDeadEntities();
     void drawScene();
 }
 
@@ -109,6 +109,8 @@ void Game::run(Game::Options options)
             stepTimer.start();
 
             drawScene();
+
+            cullDeadEntities();
         }
         catch (std::exception &e)
         {
@@ -241,29 +243,42 @@ void shutdownSDL()
 
 void initEntities()
 {
-    _walls = std::make_shared<Walls>();
-    LOG(DEBUG) << *_walls;
+    auto walls = std::make_shared<Walls>();
+    LOG(DEBUG) << *walls;
 
     auto initialPosition =
             b2Vec2(_camera->getWorldWidth() / 2,
                    _camera->getWorldHeight() / 8);
-    _paddle = std::make_shared<Paddle>(initialPosition, _walls);
-    LOG(DEBUG) << *_paddle;
+    auto paddle = std::make_shared<Paddle>(initialPosition, walls);
+    LOG(DEBUG) << *paddle;
 
     initialPosition =
             b2Vec2(_camera->getWorldWidth() / 2,
                    _camera->getWorldHeight() - (_camera->getWorldHeight() / 8));
-    _ball = std::make_shared<Ball>(initialPosition);
-    LOG(DEBUG) << *_ball;
+    auto ball = std::make_shared<Ball>(initialPosition);
+    LOG(DEBUG) << *ball;
+
+    _entities.push_back(walls);
+    _entities.push_back(paddle);
+    _entities.push_back(ball);
+
+    for (int i = 1; i <= 5; i++)
+    {
+        initialPosition =
+                b2Vec2(_camera->getWorldWidth() / 8 * i,
+                       _camera->getWorldHeight() - (_camera->getWorldHeight() / 4));
+        std::ostringstream ss;
+        ss << "Block" << i;
+        auto block = std::make_shared<Block>(ss.str(), initialPosition);
+        LOG(DEBUG) << *block;
+        _entities.push_back(block);
+    }
 }
 
 void destroyEntities()
 {
-    // Warning: this invalidates ALL entity smart pointers!
-
-    _paddle.reset();
-    _ball.reset();
-    _walls.reset();
+    _entities.clear();
+    _deadEntities.clear();
 }
 
 void registerEvents()
@@ -315,18 +330,28 @@ void handleEvents()
 
 void updateEntities(float dt)
 {
-    _paddle->update(dt);
-    _ball->update(dt);
-    _walls->update(dt);
+    for (auto entity : _entities)
+    {
+        entity->update(dt);
+    }
+}
+
+void cullDeadEntities()
+{
+    _entities.remove_if([](std::shared_ptr<Entity> e)
+    {
+        return e->isMarkedForDeath();
+    });
 }
 
 void drawScene()
 {
     Window::clear();
 
-    _paddle->draw();
-    _ball->draw();
-    _walls->draw();
+    for (auto entity : _entities)
+    {
+        entity->draw();
+    }
 
     Window::flip();
 }

@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 #include "physics.hpp"
 
-const b2Vec2 Block::DIMENSIONS = b2Vec2(2, 0.3);
+const b2Vec2 Block::DIMENSIONS = b2Vec2(1, 0.5);
 
 Block::Block(const std::string &name, const b2Vec2 &position) :
     Entity(name, Type::BLOCK),
@@ -50,6 +50,14 @@ void Block::draw()
             position.y,
             position.x + DIMENSIONS.x,
             position.y + DIMENSIONS.y);
+}
+
+void Block::startContact(const Entity *other, const b2Fixture *otherFixture)
+{
+    if (other->getName() == "Ball")
+    {
+        markForDeath();
+    }
 }
 
 std::string Block::toString() const

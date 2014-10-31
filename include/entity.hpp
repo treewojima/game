@@ -38,11 +38,17 @@ public:
     // Various getters
     inline std::string getName() const { return _name; }
     Type getType() const { return _type; }
+    bool isMarkedForDeath() const { return _markedForDeath; }
     virtual std::string toString() const;
+
+protected:
+    // This is the most badass function name ever
+    void markForDeath() { _markedForDeath = true; }
 
 private:
     std::string _name;
     Type _type;
+    bool _markedForDeath;
 };
 
 // Helper stream operators

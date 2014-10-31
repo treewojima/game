@@ -5,6 +5,7 @@
 #include <easylogging++.h>
 #include <memory>
 
+#include "entity.hpp"
 #include "window.hpp"
 
 // Locals
@@ -16,6 +17,52 @@ namespace
     const int POSITION_ITERATIONS = 8;
 
     std::unique_ptr<b2World> _world;
+
+    // Global generic contact listener. Assumes that Box2D bodies have
+    // a reference Entity for user data.
+    class ContactListener : public b2ContactListener
+    {
+    public:
+        void BeginContact(b2Contact *contact)
+        {
+            auto fixtureA = contact->GetFixtureA();
+            auto fixtureB = contact->GetFixtureB();
+
+            // First, try to associate the colliding fixtures with Entities
+            auto userData = fixtureA->GetBody()->GetUserData();
+            auto entityA = static_cast<Entity *>(userData);
+            userData = fixtureB->GetBody()->GetUserData();
+            auto entityB = static_cast<Entity *>(userData);
+
+            // Only fire the collision callbacks if both are Entities
+            if (entityA != nullptr && entityB != nullptr)
+            {
+                entityA->startContact(entityB, fixtureB);
+                entityB->startContact(entityA, fixtureA);
+            }
+        }
+
+        void EndContact(b2Contact *contact)
+        {
+            auto fixtureA = contact->GetFixtureA();
+            auto fixtureB = contact->GetFixtureB();
+
+            // First, try to associate the colliding fixtures with Entities
+            auto userData = fixtureA->GetBody()->GetUserData();
+            auto entityA = static_cast<Entity *>(userData);
+            userData = fixtureB->GetBody()->GetUserData();
+            auto entityB = static_cast<Entity *>(userData);
+
+            // Only fire the collision callbacks if both are Entities
+            if (entityA != nullptr && entityB != nullptr)
+            {
+                entityA->endContact(entityB, fixtureB);
+                entityB->endContact(entityA, fixtureA);
+            }
+        }
+    };
+
+    ContactListener _contactListener;
 }
 
 void Physics::initialize()
@@ -24,6 +71,7 @@ void Physics::initialize()
               << "." << b2_version.revision;
 
     _world = std::unique_ptr<b2World>(new b2World(INITIAL_GRAVITY));
+    _world->SetContactListener(&_contactListener);
 }
 
 void Physics::step(float dt)
