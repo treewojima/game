@@ -7,85 +7,94 @@
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <sstream>
-#include "exception.hpp"
-#include "game.hpp"
 #include "physics.hpp"
-#include "window.hpp"
 
-Entity::Entity(const std::string &name,
-               const b2Vec2 &position,
-               b2BodyType type) :
-    _name(name),
-    _body(nullptr)
+// Locals
+namespace
 {
-    // Create the initial body
-    b2BodyDef bodyDef;
-    bodyDef.type = type;
-    bodyDef.position = position;
-    _body = Physics::getWorld().CreateBody(&bodyDef);
+    class ContactListener : public b2ContactListener
+    {
+    public:
+        void BeginContact(b2Contact *contact)
+        {
+            //check if fixture A was a ball
+            auto userData = contact->GetFixtureA()->GetBody()->GetUserData();
+            if (userData != nullptr)
+                static_cast<Entity *>(userData)->startContact();
 
-    // Do the rest of the body/fixture initialization in initialize(), since
-    // the default implementation uses virtual functions
+            //check if fixture B was a ball
+            userData = contact->GetFixtureB()->GetBody()->GetUserData();
+            if (userData != nullptr)
+              static_cast<Entity *>(userData)->startContact();
+        }
 
-    //LOG(DEBUG) << "created entity " << _name << "[" << position << "]";
+        void EndContact(b2Contact *contact)
+        {
+            //check if fixture A was a ball
+            auto userData = contact->GetFixtureA()->GetBody()->GetUserData();
+            if (userData != nullptr)
+                static_cast<Entity *>(userData)->endContact();
+
+            //check if fixture B was a ball
+            userData = contact->GetFixtureB()->GetBody()->GetUserData();
+            if (userData != nullptr)
+              static_cast<Entity *>(userData)->endContact();
+        }
+    };
+
+    ContactListener _contactListener;
+}
+
+Entity::Entity(const std::string &name) :
+    _name(name)
+{
+    Physics::getWorld().SetContactListener(&_contactListener);
 }
 
 Entity::~Entity()
-{    
-    Physics::getWorld().DestroyBody(_body);
-
-    LOG(DEBUG) << "destroyed entity \"" << _name << "\"";
+{
+    LOG(DEBUG) << "destroyed entity " << getName();
 }
 
 std::string Entity::toString() const
 {
     std::ostringstream ss;
-    ss << "Entity[name = \"" << getName() << "\", position = "
-       << getPosition() << "]";
+    ss << "Entity[name = \"" << getName() << "\"]";
     return ss.str();
-}
-
-/*SDL_Rect Entity::getSDLRect() const
-{
-    auto position = Game::getCamera().worldToScreen(getPosition(), true);
-    auto dimensions = Game::getCamera().worldToScreen(getDimensions());
-
-    return SDL_Rect { static_cast<int>(std::round(position.x)),
-                      static_cast<int>(std::round(position.y)),
-                      static_cast<int>(std::round(dimensions.x)),
-                      static_cast<int>(std::round(dimensions.y)) };
-}*/
-
-void Entity::setBody(b2Body *body)
-{
-    assert(body != nullptr);
-    _body = body;
 }
 
 BoxEntity::BoxEntity(const std::string &name,
                      const b2Vec2 &position,
                      const b2Vec2 &dimensions,
                      const SDL_Color &color,
-                     bool filled,
-                     b2BodyType type) :
-    Entity(name, position, type),
+                     bool filled) :
+    Entity(name),
+    _body(nullptr),
+    _dimensions(dimensions),
     _color(color),
-    _filled(filled),
-    _dimensions(dimensions)
+    _filled(filled)
 {
+    // First, create the body itself
+    b2BodyDef bodyDef;
+    bodyDef.position = position;
+    bodyDef.type = b2_dynamicBody;
+    _body = Physics::createBody(bodyDef);
+
+    // Now create the body fixture
+    b2PolygonShape box;
+    box.SetAsBox(dimensions.x / 2, dimensions.y / 2);
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &box;
+    fixtureDef.density = 1;
+    fixtureDef.friction = 0;
+    fixtureDef.restitution = 1;
+    _body->CreateFixture(&fixtureDef);
 }
 
-void BoxEntity::initialize()
+BoxEntity::~BoxEntity()
 {
-    // Create the body fixture
-    b2PolygonShape dynamicBox;
-    dynamicBox.SetAsBox(getWidth() / 2, getHeight() / 2);
-    b2FixtureDef fixtureDef;
-    fixtureDef.shape = &dynamicBox;
-    fixtureDef.density = 1;
-    fixtureDef.friction = 0.3;
-    fixtureDef.restitution = 1;
-    getBody().CreateFixture(&fixtureDef);
+    assert(_body != nullptr);
+    Physics::destroyBody(_body);
 }
 
 void BoxEntity::draw()
@@ -93,6 +102,7 @@ void BoxEntity::draw()
     auto position = getPosition();
     auto dimensions = getDimensions();
 
+    // Adjust for coordinates origin
     position.x -= dimensions.x / 2.f;
     position.y -= dimensions.y / 2.f;
 
@@ -100,6 +110,7 @@ void BoxEntity::draw()
 
     if (_filled)
     {
+        // Draw a filled rectangle
         glRectf(position.x,
                 position.y,
                 position.x + dimensions.x,
@@ -107,6 +118,7 @@ void BoxEntity::draw()
     }
     else
     {
+        // Draw a wireframe rectangle
         glBegin(GL_LINE_LOOP);
         {
             glVertex2f(position.x, position.y);
@@ -121,8 +133,8 @@ void BoxEntity::draw()
 std::string BoxEntity::toString() const
 {
     std::ostringstream ss;
-    ss << "Entity[name = \"" << getName() << "\", position = " << getPosition()
-       << ", dimensions = " << getDimensions() << "]";
+    ss << "BoxEntity[name = \"" << getName() << "\", position = "
+       << getPosition() << ", dimensions = " << getDimensions() << "]";
     return ss.str();
 }
 
@@ -130,31 +142,34 @@ CircleEntity::CircleEntity(const std::string &name,
                            const b2Vec2 &position,
                            float radius,
                            const SDL_Color &color,
-                           bool filled,
-                           b2BodyType type) :
-    Entity(name, position, type),
-    _color(color),
+                           bool filled) :
+    Entity(name),
+    _body(nullptr),
     _radius(radius),
+    _color(color),
     _filled(filled)
 {
-}
+    // First, create the body itself
+    b2BodyDef bodyDef;
+    bodyDef.position = position;
+    bodyDef.type = b2_dynamicBody;
+    _body = Physics::createBody(bodyDef);
 
-void CircleEntity::initialize()
-{
+    // Now create the body fixture
     b2CircleShape shape;
-    shape.m_radius = _radius;
-
+    shape.m_radius = radius;
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &shape;
     fixtureDef.density = 1;
-    fixtureDef.friction = 0.3;
+    fixtureDef.friction = 0;
     fixtureDef.restitution = 1;
-    getBody().CreateFixture(&fixtureDef);
+    _body->CreateFixture(&fixtureDef);
 }
 
-void CircleEntity::update(float dt)
+CircleEntity::~CircleEntity()
 {
-    //std::cout << getPosition() << std::endl;
+    assert(_body != nullptr);
+    Physics::destroyBody(_body);
 }
 
 void CircleEntity::draw()
@@ -164,11 +179,16 @@ void CircleEntity::draw()
 
     glColor4ub(_color.r, _color.g, _color.b, _color.a);
 
+    // Draw either filled triangles or wireframe
     glBegin(_filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
     {
+        // If filling, set the center vertex
         if (_filled) glVertex2f(position.x, position.y);
 
-        for (int angle = 0; angle <= 360; angle += 5)
+        // Adjust the stepping for more/less precision (should be a factor
+        // of 360)
+        const int STEP = 20;
+        for (int angle = 0; angle <= 360; angle += STEP)
         {
             glVertex2f(position.x + std::sin(angle * (M_PI / 180)) * radius,
                        position.y + std::cos(angle * (M_PI / 180)) * radius);
@@ -180,28 +200,7 @@ void CircleEntity::draw()
 std::string CircleEntity::toString() const
 {
     std::ostringstream ss;
-    ss << "Entity[name = \"" << getName() << "\", position = " << getPosition()
-       << ", radius = " << getRadius() << "]";
+    ss << "CircleEntity[name = \"" << getName() << "\", position = "
+       << getPosition() << ", radius = " << getRadius() << "]";
     return ss.str();
 }
-
-#if 0
-TexturedEntity::TexturedEntity(const std::string &name,
-                               std::shared_ptr<Texture> texture,
-                               float x_, float y_,
-                               float vel_x_, float vel_y_) :
-    Entity(name, x_, y_, vel_x_, vel_y_),
-    _texture(texture)
-{
-     assert(_texture.get() != nullptr);
-}
-
-void TexturedEntity::draw()
-{
-    /*window::blit(*_texture,
-                 static_cast<int>(x),
-                 static_cast<int>(y));*/
-
-    throw Exception("shouldn't be trying to draw a TexturedEntity right nao");
-}
-#endif

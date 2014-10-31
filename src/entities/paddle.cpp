@@ -1,55 +1,101 @@
 #include "defines.hpp"
 #include "entities/paddle.hpp"
 
-const float Paddle::DEFAULT_WIDTH = 2;
-const float Paddle::DEFAULT_HEIGHT = 0.3;
-const SDL_Color Paddle::DEFAULT_COLOR = { 0, 0, 0, 0 };
+#include <cassert>
+#include <GL/glew.h>
+#include "entities/walls.hpp"
+#include "physics.hpp"
 
-Paddle::Paddle(const b2Vec2 &position) :
-    BoxEntity("Paddle",
-              position,
-              b2Vec2(DEFAULT_WIDTH, DEFAULT_HEIGHT),
-              DEFAULT_COLOR)
+const b2Vec2 Paddle::DIMENSIONS = b2Vec2(2, 0.3);
+
+Paddle::Paddle(const b2Vec2 &position, std::shared_ptr<Walls> walls) :
+    Entity("Paddle"),
+    _body(nullptr),
+    _fixture(nullptr)
 {
-    static const float magnitude = 0.75;
+    // First, create the body itself
+    b2BodyDef bodyDef;
+    bodyDef.position = position;
+    bodyDef.linearDamping = 0.7;
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.userData = this;
+    _body = Physics::createBody(bodyDef);
 
-    _eventHandles[PADDLE_LEFT] = Game::registerEvent(
-            SDLK_LEFT,
-            [this](const SDL_Event &e)
-            {
-                //getBody().ApplyLinearImpulse(b2Vec2(-magnitude, 0),
-                //                             getBody().GetWorldCenter(),
-                //                             true);
-                getBody().SetLinearVelocity(b2Vec2(-magnitude, 0));
-            },
-            "PaddleLeftEvent");
+    // Now create the body fixture
+    b2PolygonShape box;
+    box.SetAsBox(DIMENSIONS.x / 2, DIMENSIONS.y / 2);
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &box;
+    fixtureDef.density = 1;
+    fixtureDef.friction = 0.3;
+    fixtureDef.restitution = 0.1;
+    _fixture = _body->CreateFixture(&fixtureDef);
 
-    _eventHandles[PADDLE_RIGHT] = Game::registerEvent(
-            SDLK_RIGHT,
-            [this](const SDL_Event &e)
-            {
-                //getBody().ApplyLinearImpulse(b2Vec2(magnitude, 0),
-                //                             getBody().GetWorldCenter(),
-                //                             true);
-                getBody().SetLinearVelocity(b2Vec2(magnitude, 0));
-            },
-            "PaddleRightEvent");
+    // Set up a prismatic joint to restrict movement
+    b2PrismaticJointDef jointDef;
+    jointDef.Initialize(_body, walls->_body, position, b2Vec2(1, 0));
+    jointDef.collideConnected = true;
+    Physics::getWorld().CreateJoint(&jointDef);
+
+    // Finally, set up keyboard control events
+    registerEvents();
 }
 
 Paddle::~Paddle()
 {
+    assert(_body != nullptr);
+    Physics::destroyBody(_body);
+
     for (int i = 0; i < NUM_PADDLE_EVENTS; i++)
         Game::unregisterEvent(_eventHandles[i]);
 }
 
-void Paddle::initialize()
+void Paddle::draw()
 {
-    b2PolygonShape dynamicBox;
-    dynamicBox.SetAsBox(getWidth() / 2, getHeight() / 2);
-    b2FixtureDef fixtureDef;
-    fixtureDef.shape = &dynamicBox;
-    fixtureDef.density = 1.f;
-    fixtureDef.friction = 0.3f;
-    fixtureDef.restitution = 0.8f;
-    getBody().CreateFixture(&fixtureDef);
+    auto position = getPosition();
+
+    // Adjust for coordinates origin
+    position.x -= DIMENSIONS.x / 2.f;
+    position.y -= DIMENSIONS.y / 2.f;
+
+    // Draw a filled rectangle
+    auto color = Colors::GRAY;
+    glColor4ub(color.r, color.g, color.b, color.a);
+    glRectf(position.x,
+            position.y,
+            position.x + DIMENSIONS.x,
+            position.y + DIMENSIONS.y);
+}
+
+std::string Paddle::toString() const
+{
+    std::ostringstream ss;
+    ss << "Paddle[name = \"" << getName() << "\", position = " << getPosition()
+       << ", dimensions = " << getDimensions() << "]";
+    return ss.str();
+}
+
+void Paddle::registerEvents()
+{
+    static const float magnitude = 0.25;
+
+    _eventHandles[PADDLE_LEFT] = Game::registerEvent(
+            SDL_SCANCODE_LEFT,
+            [this](const SDL_Event &e)
+            {
+                _body->ApplyLinearImpulse(b2Vec2(-magnitude, 0),
+                                          _body->GetWorldCenter(),
+                                          true);
+            },
+            "PaddleLeftEvent");
+
+    _eventHandles[PADDLE_RIGHT] = Game::registerEvent(
+            SDL_SCANCODE_RIGHT,
+            [this](const SDL_Event &e)
+            {
+                _body->ApplyLinearImpulse(b2Vec2(magnitude, 0),
+                                          _body->GetWorldCenter(),
+                                          true);
+            },
+            "PaddleRightEvent");
 }

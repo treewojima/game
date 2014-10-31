@@ -10,6 +10,9 @@ namespace Physics
     void initialize();
     void step(float dt);
 
+    b2Body *createBody(const b2BodyDef &bodyDef);
+    void destroyBody(b2Body *body);
+
     b2World &getWorld();
 
     b2Vec2 getGravity();

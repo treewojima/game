@@ -10,10 +10,10 @@
 // Locals
 namespace
 {
-    const b2Vec2 INITIAL_GRAVITY(0, -4);
+    const b2Vec2 INITIAL_GRAVITY(0, 0);
     const float TIME_STEP = 1.f / 60.f;
-    const int VELOCITY_ITERATIONS = 6;
-    const int POSITION_ITERATIONS = 2;
+    const int VELOCITY_ITERATIONS = 24;
+    const int POSITION_ITERATIONS = 8;
 
     std::unique_ptr<b2World> _world;
 }
@@ -29,6 +29,16 @@ void Physics::initialize()
 void Physics::step(float dt)
 {
     _world->Step(dt, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+}
+
+b2Body *Physics::createBody(const b2BodyDef &bodyDef)
+{
+    return _world->CreateBody(&bodyDef);
+}
+
+void Physics::destroyBody(b2Body *const body)
+{
+    _world->DestroyBody(body);
 }
 
 b2World &Physics::getWorld()

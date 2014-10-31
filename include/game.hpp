@@ -5,9 +5,8 @@
 #include <functional>
 #include <SDL2/SDL.h>
 #include <string>
+
 #include "camera.hpp"
-#include "entity.hpp"
-#include "window.hpp"
 
 namespace Game
 {
@@ -17,7 +16,7 @@ namespace Game
     };
 
     class Event
-    {
+    {        
     public:
         typedef int Handle;
         typedef std::function<void (const SDL_Event &e)> Callback;
@@ -35,7 +34,11 @@ namespace Game
         virtual bool test(const SDL_Event &e) = 0;
         virtual void fire(const SDL_Event &e) = 0;
 
-        std::string debugString;        
+        std::string debugString;
+
+        // This doesn't quite work as const since the value can't be determined
+        // at runtime, so... don't fuck with this!
+        static Uint32 CUSTOM_KEYPRESS_EVENT;
     };
 
     int run(Options options);
@@ -45,9 +48,9 @@ namespace Game
 
     Camera &getCamera();
 
-    Event::Handle registerEvent(SDL_Keycode key,
-                              Event::Callback callback,
-                              const std::string &debugString = std::string());
+    Event::Handle registerEvent(SDL_Scancode key,
+                                Event::Callback callback,
+                                const std::string &debugString = std::string());
     Event::Handle registerEvent(std::shared_ptr<Event> event);
     void unregisterEvent(Event::Handle handle);
 }

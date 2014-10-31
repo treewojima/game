@@ -4,14 +4,24 @@
 #include "defines.hpp"
 #include "entity.hpp"
 
-class Ball : public CircleEntity
+class Ball : public Entity
 {
 public:
     Ball(const b2Vec2 &position);
+    ~Ball();
+
+    void update(float dt);
+    void draw();
+
+    inline b2Vec2 getPosition() const { return _body->GetPosition(); }
+
+    std::string toString() const;
 
 private:
-    static const float DEFAULT_RADIUS;
-    static const SDL_Color DEFAULT_COLOR;
+    static const float RADIUS;
+
+    b2Body *_body;
+    b2Fixture *_fixture;
 };
 
 #endif

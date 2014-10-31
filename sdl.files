@@ -1,5 +1,5 @@
 include/entities/block.hpp
-include/entities/ground.hpp
+include/entities/walls.hpp
 include/entities/paddle.hpp
 include/defines.hpp
 include/entity.hpp
@@ -10,7 +10,7 @@ include/texture.hpp
 include/timer.hpp
 include/window.hpp
 src/entities/block.cpp
-src/entities/ground.cpp
+src/entities/walls.cpp
 src/entities/paddle.cpp
 src/entity.cpp
 src/game.cpp
@@ -24,3 +24,7 @@ include/camera.hpp
 src/camera.cpp
 include/entities/ball.hpp
 src/entities/ball.cpp
+include/colors.hpp
+src/colors.cpp
+include/helper_events.hpp
+src/helper_events.cpp

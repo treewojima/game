@@ -16,22 +16,26 @@
 
 #include "entities/ball.hpp"
 #include "entities/paddle.hpp"
+#include "entities/walls.hpp"
 #include "exception.hpp"
+#include "helper_events.hpp"
 #include "physics.hpp"
 #include "timer.hpp"
+#include "window.hpp"
+
+Uint32 Game::Event::CUSTOM_KEYPRESS_EVENT;
 
 // Locals
 namespace
 {
     bool _running = false;
-    bool _trackMouseMotion = false;
-    bool _stepPhysics = true;
     std::map<Game::Event::Handle, std::shared_ptr<Game::Event>> _events;
     Timer _fpsTimer;
     std::unique_ptr<Camera> _camera;
 
     std::shared_ptr<Paddle> _paddle;
     std::shared_ptr<Ball> _ball;
+    std::shared_ptr<Walls> _walls;
 
     void initSDL();
     void initGL();
@@ -42,72 +46,6 @@ namespace
     void handleEvents();
     void updateEntities(float dt);
     void drawScene();
-
-    // Helper key handler event for registerEvent()
-    class KeyEvent : public Game::Event
-    {
-    public:
-        KeyEvent(SDL_Keycode key,
-                 Game::Event::Callback callback,
-                 const std::string debugString_) :
-            Event(debugString_),
-            _key(key),
-            _callback(callback) {}
-
-        bool test(const SDL_Event &e)
-        {
-            return (e.type == SDL_KEYDOWN &&
-                    e.key.keysym.sym == _key);
-        }
-
-        void fire(const SDL_Event &e)
-        {
-            _callback(e);
-        }
-
-    private:
-        SDL_Keycode _key;
-        Game::Event::Callback _callback;
-    };
-
-    // Program quit handling event, for signals such as ^C
-    class QuitEvent : public Game::Event
-    {
-    public:
-        QuitEvent() : Game::Event("QuitEvent") {}
-
-        bool test(const SDL_Event &e)
-            { return (e.type == SDL_QUIT); }
-
-        void fire(const SDL_Event &e)
-        {
-            Game::setRunning(false);
-            LOG(INFO) << "received quit signal";
-        }
-    };
-
-    // Mouse tracking event
-    class MouseMotionEvent : public Game::Event
-    {
-    public:
-        MouseMotionEvent() : Game::Event("MouseMotionEvent") {}
-
-        bool test(const SDL_Event &e)
-        {
-            return (_trackMouseMotion && e.type == SDL_MOUSEMOTION &&
-                    (e.motion.xrel || e.motion.yrel));
-        }
-
-        void fire(const SDL_Event &e)
-        {
-            std::cout << "mouse movement: abs("
-                      << e.motion.x << ", "
-                      << e.motion.y << "), rel("
-                      << e.motion.xrel << ", "
-                      << e.motion.yrel << ")"
-                      << std::endl;
-        }
-    };
 }
 
 int Game::run(Game::Options options)
@@ -137,8 +75,8 @@ int Game::run(Game::Options options)
     }
 
     Physics::initialize();
-    initEntities();
     registerEvents();
+    initEntities();
 
     Timer stepTimer;
     float dt = 0;
@@ -167,7 +105,7 @@ int Game::run(Game::Options options)
             handleEvents();
 
             dt = stepTimer.getTicks() / 1000.f;
-            if (_stepPhysics) Physics::step(dt);
+            Physics::step(dt);
             updateEntities(dt);
             stepTimer.start();
 
@@ -204,9 +142,9 @@ Camera &Game::getCamera()
     return *_camera;
 }
 
-Game::Event::Handle Game::registerEvent(SDL_Keycode key,
-                                      Game::Event::Callback callback,
-                                      const std::string &debugString)
+Game::Event::Handle Game::registerEvent(SDL_Scancode key,
+                                        Game::Event::Callback callback,
+                                        const std::string &debugString)
 {
     return registerEvent(std::shared_ptr<KeyEvent>(
                              new KeyEvent(key, callback, debugString)));
@@ -243,17 +181,13 @@ namespace {
 void initSDL()
 {
     if (SDL_Init(SDL_INIT_VIDEO))
-    {
         throw SDLException();
-    }
-    else
-    {
-        SDL_version version;
-        SDL_GetVersion(&version);
-        LOG(INFO) << "using SDL " << static_cast<int>(version.major) << "."
-                  << static_cast<int>(version.minor) << "."
-                  << static_cast<int>(version.patch);
-    }
+
+    SDL_version version;
+    SDL_GetVersion(&version);
+    LOG(INFO) << "using SDL " << static_cast<int>(version.major) << "."
+              << static_cast<int>(version.minor) << "."
+              << static_cast<int>(version.patch);
 
     auto flags = IMG_INIT_PNG | IMG_INIT_JPG;
     if (!(IMG_Init(flags) & flags))
@@ -309,18 +243,19 @@ void shutdownSDL()
 
 void initEntities()
 {
+    _walls = std::make_shared<Walls>();
+    LOG(DEBUG) << *_walls;
+
     auto initialPosition =
             b2Vec2(_camera->getWorldWidth() / 2,
                    _camera->getWorldHeight() / 8);
-    _paddle = std::make_shared<Paddle>(initialPosition);
-    _paddle->initialize();
+    _paddle = std::make_shared<Paddle>(initialPosition, _walls);
     LOG(DEBUG) << *_paddle;
 
     initialPosition =
             b2Vec2(_camera->getWorldWidth() / 2,
                    _camera->getWorldHeight() - (_camera->getWorldHeight() / 8));
     _ball = std::make_shared<Ball>(initialPosition);
-    _ball->initialize();
     LOG(DEBUG) << *_ball;
 }
 
@@ -330,32 +265,47 @@ void destroyEntities()
 
     _paddle.reset();
     _ball.reset();
+    _walls.reset();
 }
 
 void registerEvents()
 {
-    Game::registerEvent(std::make_shared<QuitEvent>());
+    // Set up an event filter to drop normal keyboard events from the queue
+    SDL_SetEventFilter(
+            [](void *unused, SDL_Event *e) -> int
+            {
+                return !(e->type == SDL_KEYDOWN ||
+                         e->type == SDL_KEYUP);
+            },
+            nullptr);
 
+    // Register a custom keyboard event designed to fire every "tick"
+    Game::Event::CUSTOM_KEYPRESS_EVENT = SDL_RegisterEvents(1);
+    if (Game::Event::CUSTOM_KEYPRESS_EVENT == (Uint32)-1)
+        throw SDLException();
+
+    // Window/program quit event
+    Game::registerEvent(std::make_shared<Game::QuitEvent>());
+
+    // Escape key handler
     Game::registerEvent(
-            SDLK_ESCAPE,
+            SDL_SCANCODE_ESCAPE,
             [](const SDL_Event &e) { Game::setRunning(false); },
             "EscapeEvent");
-
-    Game::registerEvent(
-            SDLK_m,
-            [&](const SDL_Event &e) { _trackMouseMotion = !_trackMouseMotion; },
-            "MouseMotionToggleEvent");
-    Game::registerEvent(std::make_shared<MouseMotionEvent>());
-
-    Game::registerEvent(
-            SDLK_s,
-            [&](const SDL_Event &e) { _stepPhysics = !_stepPhysics; },
-            "StepPhysicsToggleEvent");
 }
 
 void handleEvents()
 {
+    // Inject an event to check our keyboard state
+    //SDL_PumpEvents();
     SDL_Event event;
+    memset(&event, 0, sizeof(SDL_Event));
+    event.type = Game::Event::CUSTOM_KEYPRESS_EVENT;
+    event.user.data1 = const_cast<Uint8 *>(SDL_GetKeyboardState(nullptr));
+    SDL_PushEvent(&event);
+
+    // Run the normal event loop
+    memset(&event, 0, sizeof(SDL_Event));
     while (SDL_PollEvent(&event))
     {
         for (auto &pair : _events)
@@ -369,14 +319,16 @@ void updateEntities(float dt)
 {
     _paddle->update(dt);
     _ball->update(dt);
+    _walls->update(dt);
 }
 
 void drawScene()
 {
-    Window::clear(1, 1, 1);
+    Window::clear();
 
     _paddle->draw();
     _ball->draw();
+    _walls->draw();
 
     Window::flip();
 }
