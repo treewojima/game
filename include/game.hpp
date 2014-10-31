@@ -41,7 +41,7 @@ namespace Game
         static Uint32 CUSTOM_KEYPRESS_EVENT;
     };
 
-    int run(Options options);
+    void run(Options options);
 
     bool isRunning();
     void setRunning(bool b);

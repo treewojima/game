@@ -4,17 +4,24 @@
 #include "defines.hpp"
 #include "entity.hpp"
 
-#ifdef _ENABLE_BLOCKS
-
-class Block : public BoxEntity
+class Block : public Entity
 {
 public:
-    using BoxEntity::BoxEntity;
+    Block(const std::string &name, const b2Vec2 &position);
+    ~Block();
 
-    static const float DEFAULT_WIDTH;
-    static const float DEFAULT_HEIGHT;
+    void draw();
+
+    inline b2Vec2 getPosition() const { return _body->GetPosition(); }
+    inline b2Vec2 getDimensions() const { return DIMENSIONS; }
+
+    std::string toString() const;
+
+private:
+    static const b2Vec2 DIMENSIONS;
+
+    b2Body *_body;
+    b2Fixture *_fixture;
 };
-
-#endif
 
 #endif

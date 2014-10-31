@@ -9,7 +9,7 @@
 const b2Vec2 Paddle::DIMENSIONS = b2Vec2(2, 0.3);
 
 Paddle::Paddle(const b2Vec2 &position, std::shared_ptr<Walls> walls) :
-    Entity("Paddle"),
+    Entity("Paddle", Type::PADDLE),
     _body(nullptr),
     _fixture(nullptr)
 {
@@ -29,6 +29,8 @@ Paddle::Paddle(const b2Vec2 &position, std::shared_ptr<Walls> walls) :
     fixtureDef.density = 1;
     fixtureDef.friction = 0.3;
     fixtureDef.restitution = 0.1;
+    fixtureDef.filter.categoryBits = getType();
+    fixtureDef.filter.maskBits = Type::BARRIER | Type::BALL;
     _fixture = _body->CreateFixture(&fixtureDef);
 
     // Set up a prismatic joint to restrict movement

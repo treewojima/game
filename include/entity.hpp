@@ -3,84 +3,46 @@
 
 #include "defines.hpp"
 #include <Box2D/Box2D.h>
+#include <cstdint>
 #include <easylogging++.h>
 #include <SDL2/SDL.h>
 #include <string>
 
 #include "colors.hpp"
 
+// Base virtual entity class
 class Entity
 {
 public:
-    Entity(const std::string &name);
+    // Entity types, for collision handling purposes
+    enum Type
+    {
+        BARRIER = 0x1,
+        PADDLE  = 0x2,
+        BALL    = 0x4,
+        BLOCK   = 0x8
+    };
+
+    // Constructor/destructor
+    Entity(const std::string &name, Type type = Type::BARRIER);
     virtual ~Entity();
 
+    // Update and draw functions, called in every tick of the loop
     virtual void update(float dt) {}
     virtual void draw() = 0;
 
-    virtual void startContact() { std::cout << "OW -> " << toString() << std::endl; }
-    virtual void endContact() { std::cout << "phew -> " << toString() << std::endl; }
+    // Collision handlers
+    virtual void startContact(const Entity *other, const b2Fixture *otherFixture) {}
+    virtual void endContact(const Entity *other, const b2Fixture *otherFixture) {}
 
+    // Various getters
     inline std::string getName() const { return _name; }
-
+    Type getType() const { return _type; }
     virtual std::string toString() const;
 
 private:
     std::string _name;
-};
-
-class BoxEntity : public Entity
-{
-public:
-    BoxEntity(const std::string &name,
-              const b2Vec2 &position,
-              const b2Vec2 &dimensions,
-              const SDL_Color &color = Colors::BLACK,
-              bool filled = true);
-    ~BoxEntity();
-
-    void draw();
-
-    virtual inline b2Vec2 getPosition() const { return _body->GetPosition(); }
-    virtual inline b2Vec2 getDimensions() const { return _dimensions; }
-
-    std::string toString() const;
-
-protected:
-    inline b2Body &getBody() { return *_body; }
-
-private:
-    b2Body *_body;
-    const b2Vec2 _dimensions;
-    SDL_Color _color;
-    bool _filled;
-};
-
-class CircleEntity : public Entity
-{
-public:
-    CircleEntity(const std::string &name,
-                 const b2Vec2 &position,
-                 float radius,
-                 const SDL_Color &color = Colors::BLACK,
-                 bool filled = true);
-    ~CircleEntity();
-
-    void draw();
-
-    virtual inline b2Vec2 getPosition() const { return _body->GetPosition(); }
-    virtual inline float getRadius() const { return _radius; }
-
-    std::string toString() const;
-
-protected:
-    inline b2Body &getBody() { return *_body; }
-
-private:
-    b2Body *_body;
-    const float _radius;
-    SDL_Color _color;
-    bool _filled;
+    Type _type;
 };
 
 // Helper stream operators

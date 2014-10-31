@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    LOG(INFO) << "shut down cleanly";
     return 0;
 }
 

@@ -13,6 +13,8 @@ public:
     void update(float dt);
     void draw();
 
+    void startContact(const Entity *other, const b2Fixture *otherFixture);
+
     inline b2Vec2 getPosition() const { return _body->GetPosition(); }
 
     std::string toString() const;

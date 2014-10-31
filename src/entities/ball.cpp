@@ -4,12 +4,13 @@
 #include <cassert>
 #include <GL/glew.h>
 #include "colors.hpp"
+#include "entities/walls.hpp"
 #include "physics.hpp"
 
 const float Ball::RADIUS = 0.15;
 
 Ball::Ball(const b2Vec2 &position) :
-    Entity("Ball"),
+    Entity("Ball", Type::BALL),
     _body(nullptr),
     _fixture(nullptr)
 {
@@ -28,6 +29,8 @@ Ball::Ball(const b2Vec2 &position) :
     fixtureDef.density = 1;
     fixtureDef.friction = 0;
     fixtureDef.restitution = 1;
+    fixtureDef.filter.categoryBits = getType();
+    fixtureDef.filter.maskBits = Type::BARRIER | Type::BLOCK | Type::PADDLE;
     _fixture = _body->CreateFixture(&fixtureDef);
 
     // Set it moving!
@@ -44,22 +47,14 @@ void Ball::update(float dt)
 {
     // If we're going too fast, slooooooow down
     const float MAX_SPEED = 8;
-    static bool wat = false;
 
     auto speed = _body->GetLinearVelocity().Length();
     if (speed > MAX_SPEED)
     {
-        wat = true;
-        std::cout << "slooooow down" << std::endl;
         _body->SetLinearDamping(0.5);
     }
     else if (speed < MAX_SPEED)
     {
-        if (wat)
-        {
-            std::cout << "okay good" << std::endl;
-            wat = false;
-        }
         _body->SetLinearDamping(0);
     }
 }
@@ -86,6 +81,26 @@ void Ball::draw()
         }
     }
     glEnd();
+}
+
+void Ball::startContact(const Entity *other, const b2Fixture *otherFixture)
+{
+    // First, check if the other Entity is a wall
+    // NOTE: this should probably use getType() rather than getName(), but meh
+    if (other->getName() == "Walls")
+    {
+        auto walls = dynamic_cast<const Walls *>(other);
+        assert(walls != nullptr);
+
+        // See if we hit the bottom
+        if (otherFixture == walls->_bottomFixture)
+        {
+            std::cout << "I HIT BOTTOM" << std::endl;
+        }
+    }
+
+    //std::cout << "I, the great " << getName() << ", collided with "
+    //          << other.getName() << "!" << std::endl;
 }
 
 std::string Ball::toString() const

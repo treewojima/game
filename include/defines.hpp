@@ -6,8 +6,6 @@
 #define _USE_MATH_DEFINES
 
 //#define _DEBUG_EVENTS
-//#define _ENABLE_BLOCKS
-#define _ENABLE_GROUND
 //#define _ENABLE_TEXTURES
 
 #endif

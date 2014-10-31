@@ -7,6 +7,7 @@
 class Walls : public Entity
 {
     friend class Paddle;
+    friend class Ball;
 
 public:
     Walls();

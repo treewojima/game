@@ -48,7 +48,7 @@ namespace
     void drawScene();
 }
 
-int Game::run(Game::Options options)
+void Game::run(Game::Options options)
 {
     try
     {
@@ -71,7 +71,6 @@ int Game::run(Game::Options options)
     catch (std::exception &e)
     {
         LOG(ERROR) << "EXCEPTION: " << e.what();
-        return 1;
     }
 
     Physics::initialize();
@@ -124,7 +123,6 @@ int Game::run(Game::Options options)
     Window::destroy();
     destroyEntities();
     shutdownSDL();
-    return 0;
 }
 
 bool Game::isRunning()
