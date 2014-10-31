@@ -8,7 +8,7 @@ SOURCES  := $(shell find $(PROJDIRS) -type f -name "*.cpp")
 HEADERS  := $(shell find $(PROJDIRS) -type f -name "*.hpp")
 OBJECTS  := $(patsubst %.cpp, %.o, $(SOURCES))
 DEPFILES := $(patsubst %.cpp, %.dep, $(SOURCES))
-TARGET   := sdl
+TARGET   := game
 
 .PHONY: all clean dumpvars
 
