@@ -11,11 +11,10 @@ class Block : public BoxEntity
 public:
     using BoxEntity::BoxEntity;
 
-    void draw();
-
     static const float DEFAULT_WIDTH;
     static const float DEFAULT_HEIGHT;
 };
+
 #endif
 
 #endif

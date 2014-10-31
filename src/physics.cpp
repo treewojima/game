@@ -7,13 +7,10 @@
 
 #include "window.hpp"
 
-const float Physics::METERS_TO_PIXELS = 50.f;
-const float Physics::PIXELS_TO_METERS = 1.f / Physics::METERS_TO_PIXELS;
-
 // Locals
 namespace
 {
-    const b2Vec2 INITIAL_GRAVITY(0, -2);
+    const b2Vec2 INITIAL_GRAVITY(0, -4);
     const float TIME_STEP = 1.f / 60.f;
     const int VELOCITY_ITERATIONS = 6;
     const int POSITION_ITERATIONS = 2;
@@ -37,4 +34,14 @@ void Physics::step(float dt)
 b2World &Physics::getWorld()
 {
     return *_world;
+}
+
+b2Vec2 Physics::getGravity()
+{
+    return _world->GetGravity();
+}
+
+void Physics::setGravity(const b2Vec2 &gravity)
+{
+    _world->SetGravity(gravity);
 }

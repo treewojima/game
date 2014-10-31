@@ -14,20 +14,15 @@
 #include <sstream>
 #include <tclap/CmdLine.h>
 
-#include "entities/block.hpp"
-#include "entities/ground.hpp"
-#include "entities/player.hpp"
-#include "entity.hpp"
+#include "entities/ball.hpp"
+#include "entities/paddle.hpp"
 #include "exception.hpp"
 #include "physics.hpp"
-#include "texture.hpp"
 #include "timer.hpp"
 
 // Locals
 namespace
 {
-    const int NUM_BLOCKS = 2;
-
     bool _running = false;
     bool _trackMouseMotion = false;
     bool _stepPhysics = true;
@@ -35,13 +30,8 @@ namespace
     Timer _fpsTimer;
     std::unique_ptr<Camera> _camera;
 
-    std::shared_ptr<Player> _player;
-#ifdef _ENABLE_GROUND
-    std::shared_ptr<Ground> _ground;
-#endif
-#ifdef _ENABLE_BLOCKS
-    std::list<std::shared_ptr<Block>> _blocks;
-#endif
+    std::shared_ptr<Paddle> _paddle;
+    std::shared_ptr<Ball> _ball;
 
     void initSDL();
     void initGL();
@@ -319,63 +309,27 @@ void shutdownSDL()
 
 void initEntities()
 {
-    auto pos = b2Vec2(_camera->getWorldWidth() / 4,
-                      _camera->getWorldHeight() / 2);
-    _player = std::make_shared<Player>(pos);
-    _player->initialize();
-    LOG(DEBUG) << *_player;
+    auto initialPosition =
+            b2Vec2(_camera->getWorldWidth() / 2,
+                   _camera->getWorldHeight() / 8);
+    _paddle = std::make_shared<Paddle>(initialPosition);
+    _paddle->initialize();
+    LOG(DEBUG) << *_paddle;
 
-#ifdef _ENABLE_GROUND
-    _ground = std::make_shared<Ground>(
-            "Ground",
-            b2Vec2(-Window::getWidth(), 0),
-            b2Vec2(Window::getWidth() * 3, Ground::DEFAULT_HEIGHT),
-            false);
-    _ground->initialize();
-    LOG(DEBUG) << *_ground;
-#endif
-
-#ifdef _ENABLE_BLOCKS
-    // This should probably test for overlap and repeated numbers, but meh
-    std::random_device rd;
-    std::default_random_engine generator(rd());
-    std::uniform_real_distribution<float>
-            x_distribution(0, Window::getWidth() - Block::DEFAULT_WIDTH);
-    std::uniform_real_distribution<float>
-            y_distribution(0, Window::getHeight() - Block::DEFAULT_HEIGHT);
-    for (int i = 0; i < NUM_BLOCKS; i++)
-    {
-        std::ostringstream ss;
-        ss << "Block" << i;
-        float x = x_distribution(generator);
-        float y = y_distribution(generator);
-
-        auto block = std::make_shared<Block>(
-                ss.str(),
-                b2Vec2(x, y),
-                b2Vec2(Block::DEFAULT_WIDTH, Block::DEFAULT_HEIGHT));
-        block->initialize();
-        _blocks.push_back(block);
-
-        //LOG(DEBUG) << "creating block " << ss.str() << "(" << x << ", " << y << ")";
-    }
-#endif
+    initialPosition =
+            b2Vec2(_camera->getWorldWidth() / 2,
+                   _camera->getWorldHeight() - (_camera->getWorldHeight() / 8));
+    _ball = std::make_shared<Ball>(initialPosition);
+    _ball->initialize();
+    LOG(DEBUG) << *_ball;
 }
 
 void destroyEntities()
 {
     // Warning: this invalidates ALL entity smart pointers!
 
-#ifdef _ENABLE_BLOCKS
-    for (auto &block : _blocks)
-        block.reset();
-#endif
-
-    _player.reset();
-
-#ifdef _ENABLE_GROUND
-    _ground.reset();
-#endif
+    _paddle.reset();
+    _ball.reset();
 }
 
 void registerEvents()
@@ -413,32 +367,16 @@ void handleEvents()
 
 void updateEntities(float dt)
 {
-    _player->update(dt);
-
-#ifdef _ENABLE_GROUND
-    _ground->update(dt);
-#endif
-
-#ifdef _ENABLE_BLOCKS
-    for (auto &block : _blocks)
-        block->update(dt);
-#endif
+    _paddle->update(dt);
+    _ball->update(dt);
 }
 
 void drawScene()
 {
     Window::clear(1, 1, 1);
 
-    _player->draw();
-
-#ifdef _ENABLE_GROUND
-    _ground->draw();
-#endif
-
-#ifdef _ENABLE_BLOCKS
-    for (auto &block : _blocks)
-        block->draw();
-#endif
+    _paddle->draw();
+    _ball->draw();
 
     Window::flip();
 }

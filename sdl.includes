@@ -1,3 +1,5 @@
 include/
 lib/include/
 src
+include/entities
+src/entities

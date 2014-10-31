@@ -14,7 +14,9 @@
 class Entity
 {
 public:
-    Entity(const std::string &name, const b2Vec2 &position, bool dynamic = true);
+    Entity(const std::string &name,
+           const b2Vec2 &position,
+           b2BodyType type = b2_dynamicBody);
     virtual ~Entity();
 
     virtual void initialize() = 0;
@@ -22,11 +24,12 @@ public:
     virtual void draw() = 0;
 
     inline std::string getName() const { return _name; }
-    virtual float getWidth() const = 0;
-    virtual float getHeight() const = 0;
+    //virtual float getWidth() const = 0;
+    //virtual float getHeight() const = 0;
     inline b2Body &getBody() const { return *_body; }
     inline const b2Vec2 &getPosition() const { return getBody().GetPosition(); }
-    inline const b2Vec2 getDimensions() const { return b2Vec2(getWidth(), getHeight()); }
+    //inline const b2Vec2 getDimensions() const { return b2Vec2(getWidth(), getHeight()); }
+    //virtual b2Vec2 getDimensions() const = 0;
 
     virtual std::string toString() const;
 
@@ -45,16 +48,49 @@ public:
     BoxEntity(const std::string &name,
               const b2Vec2 &position,
               const b2Vec2 &dimensions,
-              bool dynamic = true);
+              const SDL_Color &color,
+              bool filled = true,
+              b2BodyType type = b2_dynamicBody);
 
     void initialize();
+    void draw();
 
-    inline float getWidth() const { return _dimensions.x; }
-    inline float getHeight() const { return _dimensions.y; }
+    inline virtual float getWidth() const { return getDimensions().x; }
+    inline virtual float getHeight() const { return getDimensions().y; }
+    inline virtual b2Vec2 getDimensions() const { return _dimensions; }
+
+    std::string toString() const;
 
 private:
+    SDL_Color _color;
+    bool _filled;
+
     // This assumes that the Box2D box fixture dimensions never change
     const b2Vec2 _dimensions;
+};
+
+class CircleEntity : public Entity
+{
+public:
+    CircleEntity(const std::string &name,
+                 const b2Vec2 &position,
+                 float radius,
+                 const SDL_Color &color,
+                 bool filled = true,
+                 b2BodyType type = b2_dynamicBody);
+
+    void initialize();
+    void update(float dt);
+    void draw();
+
+    inline virtual float getRadius() const { return _radius; }
+
+    std::string toString() const;
+
+private:
+    SDL_Color _color;
+    const float _radius;
+    bool _filled;
 };
 
 #if 0

@@ -7,13 +7,13 @@
 
 namespace Physics
 {
-    extern const float METERS_TO_PIXELS;
-    extern const float PIXELS_TO_METERS;
-
     void initialize();
     void step(float dt);
 
     b2World &getWorld();
+
+    b2Vec2 getGravity();
+    void setGravity(const b2Vec2 &gravity);
 }
 
 // Helper stream operators for b2Vec2
