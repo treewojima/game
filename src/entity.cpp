@@ -7,6 +7,7 @@
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <sstream>
+
 #include "physics.hpp"
 
 Entity::Entity(const std::string &name, Type type) :

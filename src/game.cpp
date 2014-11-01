@@ -16,6 +16,7 @@
 
 #include "entities/ball.hpp"
 #include "entities/block.hpp"
+#include "entities/cursor.hpp"
 #include "entities/paddle.hpp"
 #include "entities/walls.hpp"
 #include "exception.hpp"
@@ -254,7 +255,7 @@ void initEntities()
 
     initialPosition =
             b2Vec2(_camera->getWorldWidth() / 2,
-                   _camera->getWorldHeight() - (_camera->getWorldHeight() / 8));
+                   _camera->getWorldHeight() / 4);
     auto ball = std::make_shared<Ball>(initialPosition);
     LOG(DEBUG) << *ball;
 
@@ -262,17 +263,26 @@ void initEntities()
     _entities.push_back(paddle);
     _entities.push_back(ball);
 
-    for (int i = 1; i <= 5; i++)
+    const int ROWS = 3, COLS = 7;
+    for (int row = 1; row <= ROWS; row++)
     {
-        initialPosition =
-                b2Vec2(_camera->getWorldWidth() / 8 * i,
-                       _camera->getWorldHeight() - (_camera->getWorldHeight() / 4));
-        std::ostringstream ss;
-        ss << "Block" << i;
-        auto block = std::make_shared<Block>(ss.str(), initialPosition);
-        LOG(DEBUG) << *block;
-        _entities.push_back(block);
+        for (int col = 1; col <= COLS; col++)
+        {
+            initialPosition =
+                    b2Vec2(_camera->getWorldWidth() / 8 * col,
+                           _camera->getWorldHeight() - (_camera->getWorldHeight() / 8 * row));
+            std::ostringstream ss;
+            ss << "Block" << row << "-" << col;
+            auto block = std::make_shared<Block>(ss.str(), initialPosition);
+            LOG(DEBUG) << *block;
+            _entities.push_back(block);
+        }
     }
+
+    // Draw the cursor last to preserve draw order
+    //auto cursor = std::make_shared<Cursor>();
+    //LOG(DEBUG) << *cursor;
+    //_entities.push_back(cursor);
 }
 
 void destroyEntities()

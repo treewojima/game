@@ -2,6 +2,7 @@
 #define __BALL_HPP__
 
 #include "defines.hpp"
+#include <Box2D/Box2D.h>
 #include "entity.hpp"
 
 class Ball : public Entity

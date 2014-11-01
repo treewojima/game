@@ -2,13 +2,13 @@
 #define __ENTITY_HPP__
 
 #include "defines.hpp"
-#include <Box2D/Box2D.h>
 #include <cstdint>
 #include <easylogging++.h>
-#include <SDL2/SDL.h>
 #include <string>
 
 #include "colors.hpp"
+
+class b2Fixture;
 
 // Base virtual entity class
 class Entity
@@ -20,7 +20,8 @@ public:
         BARRIER = 0x1,
         PADDLE  = 0x2,
         BALL    = 0x4,
-        BLOCK   = 0x8
+        BLOCK   = 0x8,
+        CURSOR  = 0x10
     };
 
     // Constructor/destructor

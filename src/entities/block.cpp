@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 #include "physics.hpp"
 
-const b2Vec2 Block::DIMENSIONS = b2Vec2(1, 0.5);
+const b2Vec2 Block::DIMENSIONS = b2Vec2(1.5, 0.5);
 
 Block::Block(const std::string &name, const b2Vec2 &position) :
     Entity(name, Type::BLOCK),
@@ -25,7 +25,7 @@ Block::Block(const std::string &name, const b2Vec2 &position) :
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &box;
     fixtureDef.filter.categoryBits = getType();
-    fixtureDef.filter.maskBits = Type::BARRIER | Type::BALL;
+    fixtureDef.filter.maskBits = Type::BARRIER | Type::BALL | Type::CURSOR;
     _fixture = _body->CreateFixture(&fixtureDef);
 }
 

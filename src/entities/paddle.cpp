@@ -16,7 +16,7 @@ Paddle::Paddle(const b2Vec2 &position, std::shared_ptr<Walls> walls) :
     // First, create the body itself
     b2BodyDef bodyDef;
     bodyDef.position = position;
-    bodyDef.linearDamping = 0.7;
+    bodyDef.linearDamping = 4;
     bodyDef.type = b2_dynamicBody;
     bodyDef.userData = this;
     _body = Physics::createBody(bodyDef);
@@ -27,10 +27,10 @@ Paddle::Paddle(const b2Vec2 &position, std::shared_ptr<Walls> walls) :
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &box;
     fixtureDef.density = 1;
-    fixtureDef.friction = 0.3;
-    fixtureDef.restitution = 0.1;
+    fixtureDef.friction = 0.05;
+    fixtureDef.restitution = 0;
     fixtureDef.filter.categoryBits = getType();
-    fixtureDef.filter.maskBits = Type::BARRIER | Type::BALL;
+    fixtureDef.filter.maskBits = Type::BARRIER | Type::BALL | Type::CURSOR;
     _fixture = _body->CreateFixture(&fixtureDef);
 
     // Set up a prismatic joint to restrict movement
@@ -79,7 +79,7 @@ std::string Paddle::toString() const
 
 void Paddle::registerEvents()
 {
-    static const float magnitude = 0.25;
+    static const float magnitude = 0.4;
 
     _eventHandles[PADDLE_LEFT] = Game::registerEvent(
             SDL_SCANCODE_LEFT,

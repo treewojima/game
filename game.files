@@ -28,3 +28,5 @@ include/colors.hpp
 src/colors.cpp
 include/helper_events.hpp
 src/helper_events.cpp
+include/entities/cursor.hpp
+src/entities/cursor.cpp

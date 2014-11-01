@@ -30,7 +30,7 @@ Ball::Ball(const b2Vec2 &position) :
     fixtureDef.friction = 0;
     fixtureDef.restitution = 1;
     fixtureDef.filter.categoryBits = getType();
-    fixtureDef.filter.maskBits = Type::BARRIER | Type::BLOCK | Type::PADDLE;
+    fixtureDef.filter.maskBits = Type::BARRIER | Type::BLOCK | Type::PADDLE | Type::CURSOR;
     _fixture = _body->CreateFixture(&fixtureDef);
 
     // Set it moving!
@@ -98,9 +98,6 @@ void Ball::startContact(const Entity *other, const b2Fixture *otherFixture)
             std::cout << "I HIT BOTTOM" << std::endl;
         }
     }
-
-    //std::cout << "I, the great " << getName() << ", collided with "
-    //          << other.getName() << "!" << std::endl;
 }
 
 std::string Ball::toString() const

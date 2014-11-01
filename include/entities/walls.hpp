@@ -4,6 +4,8 @@
 #include "defines.hpp"
 #include "entity.hpp"
 
+class b2Body;
+
 class Walls : public Entity
 {
     friend class Paddle;
