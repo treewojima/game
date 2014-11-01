@@ -263,14 +263,14 @@ void initEntities()
     _entities.push_back(paddle);
     _entities.push_back(ball);
 
-    const int ROWS = 3, COLS = 7;
+    const int ROWS = 4, COLS = 7;
     for (int row = 1; row <= ROWS; row++)
     {
         for (int col = 1; col <= COLS; col++)
         {
             initialPosition =
                     b2Vec2(_camera->getWorldWidth() / 8 * col,
-                           _camera->getWorldHeight() - (_camera->getWorldHeight() / 8 * row));
+                           _camera->getWorldHeight() - (_camera->getWorldHeight() / 16 * row));
             std::ostringstream ss;
             ss << "Block" << row << "-" << col;
             auto block = std::make_shared<Block>(ss.str(), initialPosition);
