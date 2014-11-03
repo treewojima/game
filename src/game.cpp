@@ -21,6 +21,7 @@
 #include "entities/walls.hpp"
 #include "exception.hpp"
 #include "helper_events.hpp"
+#include "level.hpp"
 #include "physics.hpp"
 #include "timer.hpp"
 #include "window.hpp"
@@ -35,7 +36,8 @@ namespace
     Timer _fpsTimer;
     std::unique_ptr<Camera> _camera;
 
-    std::list<std::shared_ptr<Entity>> _entities, _deadEntities;
+    std::list<std::shared_ptr<Entity>> _entities;
+    std::shared_ptr<Level> _level;
 
     void initSDL();
     void initGL();
@@ -263,21 +265,9 @@ void initEntities()
     _entities.push_back(paddle);
     _entities.push_back(ball);
 
-    const int ROWS = 4, COLS = 7;
-    for (int row = 1; row <= ROWS; row++)
-    {
-        for (int col = 1; col <= COLS; col++)
-        {
-            initialPosition =
-                    b2Vec2(_camera->getWorldWidth() / 8 * col,
-                           _camera->getWorldHeight() - (_camera->getWorldHeight() / 16 * row));
-            std::ostringstream ss;
-            ss << "Block" << row << "-" << col;
-            auto block = std::make_shared<Block>(ss.str(), initialPosition);
-            LOG(DEBUG) << *block;
-            _entities.push_back(block);
-        }
-    }
+    _level = std::make_shared<Level>("res/levels/level.dat");
+
+
 
     // Draw the cursor last to preserve draw order
     //auto cursor = std::make_shared<Cursor>();
@@ -288,7 +278,8 @@ void initEntities()
 void destroyEntities()
 {
     _entities.clear();
-    _deadEntities.clear();
+    _level.reset();
+    //_deadEntities.clear();
 }
 
 void registerEvents()
@@ -344,6 +335,8 @@ void updateEntities(float dt)
     {
         entity->update(dt);
     }
+
+    _level->update(dt);
 }
 
 void cullDeadEntities()
@@ -352,6 +345,8 @@ void cullDeadEntities()
     {
         return e->isMarkedForDeath();
     });
+
+    _level->cullDeadEntities();
 }
 
 void drawScene()
@@ -362,6 +357,8 @@ void drawScene()
     {
         entity->draw();
     }
+
+    _level->draw();
 
     Window::flip();
 }

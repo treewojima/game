@@ -9,6 +9,7 @@ const b2Vec2 Block::DIMENSIONS = b2Vec2(1.5, 0.5);
 
 Block::Block(const std::string &name, const b2Vec2 &position) :
     Entity(name, Type::BLOCK),
+    _color(Colors::BLUE),
     _body(nullptr),
     _fixture(nullptr)
 {
@@ -44,8 +45,7 @@ void Block::draw()
     position.y -= DIMENSIONS.y / 2.f;
 
     // Draw a filled rectangle
-    auto color = Colors::BROWN;
-    glColor4ub(color.r, color.g, color.b, color.a);
+    glColor4ub(_color.r, _color.g, _color.b, _color.a);
     glRectf(position.x,
             position.y,
             position.x + DIMENSIONS.x,

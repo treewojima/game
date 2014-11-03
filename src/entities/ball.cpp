@@ -63,7 +63,7 @@ void Ball::draw()
 {
     auto position = getPosition();
 
-    auto color = Colors::RED;
+    auto color = Colors::WHITE;
     glColor4ub(color.r, color.g, color.b, color.a);
 
     glBegin(GL_TRIANGLE_FAN);

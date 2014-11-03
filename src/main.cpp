@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <tclap/CmdLine.h>
 #include "game.hpp"
+#include "level.hpp"
 
 _INITIALIZE_EASYLOGGINGPP
 
@@ -26,6 +27,11 @@ int main(int argc, char *argv[])
     catch (TCLAP::ArgException &e)
     {
         LOG(ERROR) << "ARG EXCEPTION: " << e.error();
+        return 1;
+    }
+    catch (std::exception &e)
+    {
+        LOG(ERROR) << "EXCEPTION: " << e.what();
         return 1;
     }
 

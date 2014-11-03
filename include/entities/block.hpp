@@ -20,6 +20,9 @@ public:
 
     std::string toString() const;
 
+protected:
+    SDL_Color _color;
+
 private:
     static const b2Vec2 DIMENSIONS;
 
