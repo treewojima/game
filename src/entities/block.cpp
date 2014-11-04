@@ -24,11 +24,19 @@
 
 const b2Vec2 Block::DIMENSIONS = b2Vec2(1.5, 0.5);
 
-Block::Block(const std::string &name, const b2Vec2 &position) :
+namespace
+{
+    const SDL_Color COLORS[] = { Colors::BLUE,
+                                 Colors::RED,
+                                 Colors::GREEN };
+}
+
+Block::Block(const std::string &name, const b2Vec2 &position, int health) :
     Entity(name, Type::BLOCK),
-    _color(Colors::BLUE),
     _body(nullptr),
-    _fixture(nullptr)
+    _fixture(nullptr),
+    _health(health),
+    _color(COLORS[health - 1])
 {
     // First, create the body itself
     b2BodyDef bodyDef;
@@ -71,7 +79,15 @@ void Block::draw()
 
 void Block::startContact(const Entity *other, const b2Fixture *otherFixture)
 {
+    assert(_health >= 0);
+
     if (other->getName() == "Ball")
+    {
+        _health--;
+        _color = COLORS[_health - 1];
+    }
+
+    if (!_health)
     {
         markForDeath();
     }

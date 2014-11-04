@@ -3,10 +3,11 @@
 for row in range(1, 5):
     for col in range(1, 8):
         name = "Block"
+        health = 1
         if col == 4:
-            name = "Ultra" + name
+            health += 2
         elif col == 2 or col == 6:
-            name = "Super" + name
+            health += 1
 
-        print(name, row, "-", col, ",", row, ",", col, sep = "")
+        print(name, row, "-", col, ",", health, ",", row, ",", col, sep = "")
 

@@ -26,8 +26,6 @@
 #include <vector>
 
 #include "entities/block.hpp"
-#include "entities/superblock.hpp"
-#include "entities/ultrablock.hpp"
 #include "exception.hpp"
 #include "game.hpp"
 
@@ -89,6 +87,7 @@ void Level::loadFile(const std::string &filename)
         auto iter = tokens.begin();
 
         auto name = *iter++;
+        auto health = std::stoi(*iter++);
         auto row = std::stof(*iter++);
         auto col = std::stof(*iter++);
 
@@ -96,19 +95,6 @@ void Level::loadFile(const std::string &filename)
         b2Vec2 position(camera.getWorldWidth() / 8 * col,
                         camera.getWorldHeight() - (camera.getWorldHeight() / 16 * row));
 
-        Block *blockPtr;
-        if (col == 2 || col == 6)
-        {
-            blockPtr = new SuperBlock(name, position);
-        }
-        else if (col == 4)
-        {
-            blockPtr = new UltraBlock(name, position);
-        }
-        else
-        {
-            blockPtr = new Block(name, position);
-        }
-        _entities.push_back(std::shared_ptr<Block>(blockPtr));
+        _entities.push_back(std::make_shared<Block>(name, position, health));
     }
 }

@@ -25,7 +25,7 @@
 class Block : public Entity
 {
 public:
-    Block(const std::string &name, const b2Vec2 &position);
+    Block(const std::string &name, const b2Vec2 &position, int health);
     ~Block();
 
     void draw();
@@ -37,14 +37,13 @@ public:
 
     std::string toString() const;
 
-protected:
-    SDL_Color _color;
-
 private:
     static const b2Vec2 DIMENSIONS;
 
     b2Body *_body;
     b2Fixture *_fixture;
+    int _health;
+    SDL_Color _color;
 };
 
 #endif
