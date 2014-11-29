@@ -73,7 +73,7 @@ Game::Options parseArgs(int argc, char *argv[])
                                    false,
                                    DEFAULT_WINDOW_HEIGHT,
                                    "positive integer value");
-    TCLAP::CmdLine cmdLine("sdl", ' ', "0.1", false);
+    TCLAP::CmdLine cmdLine("game", ' ', "0.1", false);
 
     cmdLine.add(argWidth);
     cmdLine.add(argHeight);

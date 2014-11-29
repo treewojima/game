@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.2.2, 2014-11-03T17:01:23. -->
+<!-- Written by QtCreator 3.2.2, 2014-11-28T22:37:25. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
-  <value type="QByteArray">{14c8c0ce-df04-459e-aaa4-278ef1671abf}</value>
+  <value type="QByteArray">{36f15060-92c1-4e5a-9a48-5e012637a031}</value>
  </data>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -58,21 +58,21 @@
  <data>
   <variable>ProjectExplorer.Project.Target.0</variable>
   <valuemap type="QVariantMap">
-   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Desktop Qt 5.3 clang 64bit</value>
-   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Desktop Qt 5.3 clang 64bit</value>
-   <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">{6c57d7e9-a961-4049-a7ea-8018ae799049}</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Desktop</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Desktop</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">{e091a195-ab5e-4e04-933c-03e6b010592b}</value>
    <value type="int" key="ProjectExplorer.Target.ActiveBuildConfiguration">0</value>
    <value type="int" key="ProjectExplorer.Target.ActiveDeployConfiguration">0</value>
    <value type="int" key="ProjectExplorer.Target.ActiveRunConfiguration">0</value>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.0">
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/home/scott/Documents/programming/game</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/home/scott/documents/programming/game</value>
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
       <valuelist type="QVariantList" key="GenericProjectManager.GenericMakeStep.BuildTargets">
        <value type="QString">all</value>
       </valuelist>
       <value type="bool" key="GenericProjectManager.GenericMakeStep.Clean">false</value>
-      <value type="QString" key="GenericProjectManager.GenericMakeStep.MakeArguments">-j3</value>
+      <value type="QString" key="GenericProjectManager.GenericMakeStep.MakeArguments"></value>
       <value type="QString" key="GenericProjectManager.GenericMakeStep.MakeCommand"></value>
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Make</value>
@@ -106,7 +106,7 @@
     <value type="bool" key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment">false</value>
     <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Default</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Default</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">GenericProjectManager.GenericBuildConfiguration</value>
    </valuemap>
    <value type="int" key="ProjectExplorer.Target.BuildConfigurationCount">1</value>
@@ -125,52 +125,18 @@
    <value type="int" key="ProjectExplorer.Target.DeployConfigurationCount">1</value>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.PluginSettings"/>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.RunConfiguration.0">
-    <valuelist type="QVariantList" key="Analyzer.Valgrind.AddedSuppressionFiles"/>
-    <value type="bool" key="Analyzer.Valgrind.Callgrind.CollectBusEvents">false</value>
-    <value type="bool" key="Analyzer.Valgrind.Callgrind.CollectSystime">false</value>
-    <value type="bool" key="Analyzer.Valgrind.Callgrind.EnableBranchSim">false</value>
-    <value type="bool" key="Analyzer.Valgrind.Callgrind.EnableCacheSim">false</value>
-    <value type="bool" key="Analyzer.Valgrind.Callgrind.EnableEventToolTips">true</value>
-    <value type="double" key="Analyzer.Valgrind.Callgrind.MinimumCostRatio">0.01</value>
-    <value type="double" key="Analyzer.Valgrind.Callgrind.VisualisationMinimumCostRatio">10</value>
-    <value type="bool" key="Analyzer.Valgrind.FilterExternalIssues">true</value>
-    <value type="int" key="Analyzer.Valgrind.LeakCheckOnFinish">1</value>
-    <value type="int" key="Analyzer.Valgrind.NumCallers">25</value>
-    <valuelist type="QVariantList" key="Analyzer.Valgrind.RemovedSuppressionFiles"/>
-    <value type="int" key="Analyzer.Valgrind.SelfModifyingCodeDetection">1</value>
-    <value type="bool" key="Analyzer.Valgrind.Settings.UseGlobalSettings">true</value>
-    <value type="bool" key="Analyzer.Valgrind.ShowReachable">false</value>
-    <value type="bool" key="Analyzer.Valgrind.TrackOrigins">true</value>
-    <value type="QString" key="Analyzer.Valgrind.ValgrindExecutable">valgrind</value>
-    <valuelist type="QVariantList" key="Analyzer.Valgrind.VisibleErrorKinds">
-     <value type="int">0</value>
-     <value type="int">1</value>
-     <value type="int">2</value>
-     <value type="int">3</value>
-     <value type="int">4</value>
-     <value type="int">5</value>
-     <value type="int">6</value>
-     <value type="int">7</value>
-     <value type="int">8</value>
-     <value type="int">9</value>
-     <value type="int">10</value>
-     <value type="int">11</value>
-     <value type="int">12</value>
-     <value type="int">13</value>
-     <value type="int">14</value>
-    </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">s</value>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">%{buildDir}/game</value>
-    <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">true</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments"></value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable"></value>
+    <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">false</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">%{buildDir}</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Run %{buildDir}/game</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Custom Executable</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.CustomExecutableRunConfiguration</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
-    <value type="bool" key="RunConfiguration.UseCppDebugger">true</value>
-    <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">false</value>
+    <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
+    <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseMultiProcess">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>

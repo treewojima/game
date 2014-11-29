@@ -44,16 +44,14 @@ namespace
         {
             auto fixtureA = contact->GetFixtureA();
             auto fixtureB = contact->GetFixtureB();
+            auto userDataA = fixtureA->GetBody()->GetUserData();
+            auto userDataB = fixtureB->GetBody()->GetUserData();
 
-            // First, try to associate the colliding fixtures with Entities
-            auto userData = fixtureA->GetBody()->GetUserData();
-            auto entityA = static_cast<Entity *>(userData);
-            userData = fixtureB->GetBody()->GetUserData();
-            auto entityB = static_cast<Entity *>(userData);
-
-            // Only fire the collision callbacks if both are Entities
-            if (entityA != nullptr && entityB != nullptr)
+            if (userDataA && userDataB)
             {
+                auto entityA = static_cast<Entity *>(userDataA);
+                auto entityB = static_cast<Entity *>(userDataB);
+
                 entityA->startContact(entityB, fixtureB);
                 entityB->startContact(entityA, fixtureA);
             }
@@ -63,16 +61,14 @@ namespace
         {
             auto fixtureA = contact->GetFixtureA();
             auto fixtureB = contact->GetFixtureB();
+            auto userDataA = fixtureA->GetBody()->GetUserData();
+            auto userDataB = fixtureB->GetBody()->GetUserData();
 
-            // First, try to associate the colliding fixtures with Entities
-            auto userData = fixtureA->GetBody()->GetUserData();
-            auto entityA = static_cast<Entity *>(userData);
-            userData = fixtureB->GetBody()->GetUserData();
-            auto entityB = static_cast<Entity *>(userData);
-
-            // Only fire the collision callbacks if both are Entities
-            if (entityA != nullptr && entityB != nullptr)
+            if (userDataA && userDataB)
             {
+                auto entityA = static_cast<Entity *>(userDataA);
+                auto entityB = static_cast<Entity *>(userDataB);
+
                 entityA->endContact(entityB, fixtureB);
                 entityB->endContact(entityA, fixtureA);
             }
